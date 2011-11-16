@@ -753,7 +753,7 @@ FunctionEnd
 # TODO Update the Language Strings with the appropriate translations.
 
 LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall $(^Name)"
-LangString ^UninstallLink ${LANG_FRENCH} "Desinstaller $(^Name)"
+LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller $(^Name)"
 LangString ^UninstallLink ${LANG_SPANISH} "Uninstall $(^Name)"
 LangString ^UninstallLink ${LANG_GERMAN} "Uninstall $(^Name)"
 LangString ^UninstallLink ${LANG_ITALIAN} "Uninstall $(^Name)"
@@ -770,11 +770,10 @@ LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_i
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_dotnet ${LANG_ENGLISH} "Required for the program to start :"
-LangString dep_explain_java ${LANG_ENGLISH} "Required for the program to run :"
-LangString dep_explain_ooo ${LANG_ENGLISH} "Required for document preview and conversion :"
-LangString dep_explain_imagick ${LANG_ENGLISH}  "Required for image conversion :"
-LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database :"
+LangString dep_explain_java ${LANG_ENGLISH} "Required for the program to run:"
+LangString dep_explain_ooo ${LANG_ENGLISH} "Required for document preview and conversion:"
+LangString dep_explain_imagick ${LANG_ENGLISH}  "Required for image conversion:"
+LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ENGLISH} "Removal options"
 LangString rm_subtitle ${LANG_ENGLISH} "Do you want to remove the following ?"
@@ -787,7 +786,6 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_dotnet ${LANG_FRENCH} "Nécessaire pour lancer le programme :"
 LangString dep_explain_java ${LANG_FRENCH} "Nécessaire pour executer le programme :"
 LangString dep_explain_ooo ${LANG_FRENCH} "Nécessaire pourla prévisualisation et la conversion des documents :"
 LangString dep_explain_imagick ${LANG_FRENCH}  "Nécessaire pour la conversion des images :"
@@ -802,14 +800,8 @@ LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 
 # Spanish
 
-LangString svc_title ${LANG_SPANISH} "Servicio"
-LangString svc_subtitle ${LANG_SPANISH} "Seleccione si quiere instalar $(^Name) como un servicio"
-LangString svc_service_install ${LANG_SPANISH} "Instalar $(^Name) como servicio"
-LangString svc_service_start ${LANG_SPANISH} "Iniciar el servicio automáticamente"
-
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "Descargue e instale las siguientes dependencias"
-LangString dep_explain_dotnet ${LANG_SPANISH} "Requerido por el programa para iniciar :"
 LangString dep_explain_java ${LANG_SPANISH} "Requerido por el programar para ejecutarse :"
 LangString dep_explain_ooo ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos :"
 LangString dep_explain_imagick ${LANG_SPANISH}  "Requerido para la conversión de imágenes :"
@@ -824,14 +816,8 @@ LangString rm_conf ${LANG_SPANISH} "Borrar configuración"
 
 # German
 
-LangString svc_title ${LANG_GERMAN} "Dienst"
-LangString svc_subtitle ${LANG_GERMAN} "Wählen Sie, ob Sie $(^Name) als Dienst installiert haben wollen"
-LangString svc_service_install ${LANG_GERMAN} "Installiert $(^Name) als Dienst"
-LangString svc_service_start ${LANG_GERMAN} "Startet den Dienst automatisch"
-
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt und installiert folgende Abhängigkeiten herunter"
-LangString dep_explain_dotnet ${LANG_GERMAN} "Wird von der Anwendung zum Starten benötigt :"
 LangString dep_explain_java ${LANG_GERMAN} "Wird von der Anwendung während der Laufzeit benötigt :"
 LangString dep_explain_ooo ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt :"
 LangString dep_explain_imagick ${LANG_GERMAN}  "Wird für die Bildkonvertierung benötigt :"
@@ -848,11 +834,10 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 
 LangString dep_title ${LANG_ITALIAN} "(IT) Dependencies"
 LangString dep_subtitle ${LANG_ITALIAN} "(IT) Download and install the following dependencies"
-LangString dep_explain_dotnet ${LANG_ITALIAN} "(IT) Required for the program to start :"
-LangString dep_explain_java ${LANG_ITALIAN} "(IT) Required for the program to run :"
-LangString dep_explain_ooo ${LANG_ITALIAN} "(IT) Required for document preview and conversion :"
-LangString dep_explain_imagick ${LANG_ITALIAN}  "(IT) Required for image conversion :"
-LangString dep_explain_pgsql ${LANG_ITALIAN}  "(IT) EXPERIMENTAL - Automatically configure PostgreSQL database :"
+LangString dep_explain_java ${LANG_ITALIAN} "(IT) Required for the program to run:"
+LangString dep_explain_ooo ${LANG_ITALIAN} "(IT) Required for document preview and conversion:"
+LangString dep_explain_imagick ${LANG_ITALIAN}  "(IT) Required for image conversion:"
+LangString dep_explain_pgsql ${LANG_ITALIAN}  "(IT) EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ITALIAN} "(IT) Removal options"
 LangString rm_subtitle ${LANG_ITALIAN} "(IT) Do you want to remove the following ?"

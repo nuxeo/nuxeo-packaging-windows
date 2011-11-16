@@ -22,17 +22,6 @@
         </license>
     </licenses>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.nuxeo.packaging</groupId>
-                <artifactId>windows-installer-3parties</artifactId>
-                <version>1.0</version>
-                <type>zip</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <plugins>
             <plugin>

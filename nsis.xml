@@ -1,0 +1,113 @@
+<project name="nuxeo-windows-installer"
+         default="compile"
+         xmlns:nx="urn:nuxeo-build"
+         xmlns:artifact="urn:nuxeo-artifact">
+    <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
+    <taskdef resource="org/nuxeo/build/artifact/antlib.xml"
+           uri="urn:nuxeo-artifact" />
+    <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+    <property name="out.dir" value="${maven.project.build.directory}" />
+    <property name="resources.dir" value="${out.dir}/resources" />
+    <property name="distribution.dir" value="${out.dir}/distribution" />
+
+    <!-- Get variables from environment if set, use defaults otherwise -->
+    <target name="init">
+        <!-- distribution settings -->
+        <condition property="distribution.groupId" value="${env.distribution.groupId}"
+                   else="org.nuxeo.ecm.distribution">
+            <isset property="${env.distribution.groupId}" />
+        </condition>
+        <condition property="distribution.artifactId" value="${env.distribution.artifactId}"
+                   else="nuxeo-distribution-tomcat">
+            <isset property="${env.distribution.artifactId}" />
+        </condition>
+        <condition property="distribution.version" value="${env.distribution.version}"
+                   else="5.5-SNAPSHOT">
+            <isset property="${env.distribution.version}" />
+        </condition>
+        <condition property="distribution.classifier" value="${env.distribution.classifier}"
+                   else="nuxeo-cap">
+            <isset property="${env.distribution.classifier}" />
+        </condition>
+        <!-- setup file settings -->
+        <condition property="package.name" value="${env.package.name}"
+                   else="Nuxeo">
+            <isset property="${env.package.name}" />
+        </condition>
+        <condition property="package.version" value="${env.package.version}"
+                   else="5.5.0.0">
+            <isset property="${env.package.version}" />
+        </condition>
+        <condition property="package.filename" value="${env.package.filename}"
+                   else="nuxeo-${distribution.version}-setup.exe">
+            <isset property="${env.package.filename}" />
+        </condition>
+        <!-- nsis settings -->
+        <condition property="nsis.location" value="${env.nsis.location}"
+                   else="/usr/local/nsis/nsis-2.46/makensis">
+            <isset property="${env.nsis.location}" />
+        </condition>
+    </target>
+
+    <target name="setup" depends="init">
+        <echo file="${out.dir}/setup.nsh" append="false">
+Name "${package.name}"
+OutFile "${out.dir}/${package.filename}"
+VIProductVersion "${package.version}"
+!define SEP "${file.separator}"
+!define NUXEO_RESOURCES_DIR "${resources.dir}"
+!define NUXEO_DISTRIBUTION_DIR "${distribution.dir}"
+!define VERSION "${distribution.version}"
+        </echo>
+    </target>
+
+    <target name="compile" depends="setup">
+
+        <!-- copy setup.nsi -->
+        <copy file="${maven.basedir}/setup.nsi" todir="${out.dir}" />
+
+        <!-- prepare 3rd party libs -->
+        <mkdir dir="${resources.dir}/3rdparty" />
+        <unzip dest="${resources.dir}/3rdparty" overwrite="true">
+            <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties::zip" />
+        </unzip>
+
+        <!-- prepare static resources -->
+        <copy todir="${resources.dir}">
+            <fileset dir="${maven.basedir}/resources">
+                <include name="**" />
+            </fileset>
+        </copy>
+
+        <!-- prepare distribution -->
+        <unzip dest="${out.dir}/tmpdist" overwrite="true">
+            <artifact:resolveFile key="${distribution.groupId}:${distribution.artifactId}:${distribution.version}:zip:${distribution.classifier}" />
+        </unzip>
+        <move todir="${distribution.dir}">
+            <fileset dir="${out.dir}/tmpdist">
+                <include name="*/**" />
+                <exclude name="*/*shell*" />
+                <exclude name="**/*.sh" />
+                <exclude name="**/*.command" />
+                <exclude name="*/bin/*ctl" />
+                <exclude name="*/bin/pack" />
+            </fileset>
+            <mapper type="regexp" from="^([^/]+)/(.+)" to="\2" />
+        </move>
+        <delete includeEmptyDirs="true">
+            <fileset dir="${out.dir}/tmpdist" />
+        </delete>
+
+        <dirname property="nsis.dir" file="${nsis.location}" />
+        <exec executable="${nsis.location}"
+              dir="${out.dir}"
+              failonerror="true">
+            <arg value="setup.nsi" />
+            <env key="NSISDIR" file="${nsis.dir}" />
+        </exec>
+
+    </target>
+
+
+</project>

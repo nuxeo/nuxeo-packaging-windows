@@ -9,7 +9,9 @@
 
     <property name="out.dir" value="${maven.project.build.directory}" />
     <property name="resources.dir" value="${out.dir}/resources" />
+    <property name="resources.dir.os" value="${out.dir}${file.separator}resources" />
     <property name="distribution.dir" value="${out.dir}/distribution" />
+    <property name="distribution.dir.os" value="${out.dir}${file.separator}distribution" />
 
     <!-- Get variables from environment if set, use defaults otherwise -->
     <target name="init">
@@ -53,11 +55,11 @@
     <target name="setup" depends="init">
         <echo file="${out.dir}/setup.nsh" append="false">
 Name "${package.name}"
-OutFile "${out.dir}/${package.filename}"
+OutFile "${out.dir}${file.separator}${package.filename}"
 VIProductVersion "${package.version}"
 !define SEP "${file.separator}"
-!define NUXEO_RESOURCES_DIR "${resources.dir}"
-!define NUXEO_DISTRIBUTION_DIR "${distribution.dir}"
+!define NUXEO_RESOURCES_DIR "${resources.dir.os}"
+!define NUXEO_DISTRIBUTION_DIR "${distribution.dir.os}"
 !define VERSION "${distribution.version}"
         </echo>
     </target>
@@ -93,7 +95,7 @@ VIProductVersion "${package.version}"
                 <exclude name="*/bin/*ctl" />
                 <exclude name="*/bin/pack" />
             </fileset>
-            <mapper type="regexp" from="^([^/]+)/(.+)" to="\2" />
+            <regexpmapper handledirsep="true" from="^([^/]+)/(.+)" to="\2" />
         </move>
         <delete includeEmptyDirs="true">
             <fileset dir="${out.dir}/tmpdist" />

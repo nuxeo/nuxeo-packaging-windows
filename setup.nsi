@@ -275,8 +275,8 @@ Function CheckJava
                "SOFTWARE\JavaSoft\Java Development Kit" \
                "CurrentVersion"
         SetRegView 32
-        #StrCmp $2 "1.5" foundjava
         StrCmp $2 "1.6" foundjava
+        StrCmp $2 "1.7" foundjava
     ${EndIf}
     # 64bit arch with 32bit JDK
     ${If} ${RunningX64}
@@ -285,15 +285,15 @@ Function CheckJava
                    "SOFTWARE\Wow6432Node\JavaSoft\Java Development Kit" \
                    "CurrentVersion"
         SetRegView 32
-        #StrCmp $2 "1.5" foundjava
         StrCmp $2 "1.6" foundjava
+        StrCmp $2 "1.7" foundjava
     ${EndIf}
     # 32bit arch with 32bit JDK
     ReadRegStr $2 HKLM \
            "SOFTWARE\JavaSoft\Java Development Kit" \
            "CurrentVersion"
-    #StrCmp $2 "1.5" foundjava
     StrCmp $2 "1.6" foundjava
+    StrCmp $2 "1.7" foundjava
     # We didn't find a JDK
     Push 0
     Goto done
@@ -310,6 +310,7 @@ Function CheckOOo
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE" $1
             StrCmp $2 "OpenOffice.org" foundooo
+            StrCmp $2 "LibreOffice" foundooo
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -321,6 +322,7 @@ Function CheckOOo
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node" $1
             StrCmp $2 "OpenOffice.org" foundooo
+            StrCmp $2 "LibreOffice" foundooo
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -330,6 +332,7 @@ Function CheckOOo
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE" $1
         StrCmp $2 "OpenOffice.org" foundooo
+        StrCmp $2 "LibreOffice" foundooo
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find OpenOffice.org

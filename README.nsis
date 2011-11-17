@@ -1,0 +1,25 @@
+*** How to install NSIS for use on Linux:
+
+1) Get the software
+
+- Create a directory for nsis (/usr/local/nsis)
+- Download and uncompress nsis-2.46.zip and nsis-2.46-src.tar.bz2 from http://nsis.sourceforge.net/ in that directory
+
+
+2) Add the plugin we use for the installer builds
+
+- Download the Access Control plugin (http://nsis.sourceforge.net/AccessControl_plug-in)
+- Put the plugin DLLs in the nsis Plugin directory
+
+3) Install build tools
+
+- Install the "scons" package from your debian/ubuntu/whatever repository
+- For 64bit build environments, install libc6-dev-i386 and g++-multilib
+
+4) Compile the binary
+
+In /usr/local/nsis/nsis-2.46-src, run:
+scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all NSIS_CONFIG_CONST_DATA_PATH=no NSIS_MAX_STRLEN=8192 PREFIX=/usr/local/nsis/nsis-2.46 install-compiler
+
+-> This will create a makensis binary (large strings build variant) in /usr/local/nsis/nsis-2.46
+

@@ -23,3 +23,8 @@ scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all NSIS_CONFIG_CONST
 
 -> This will create a makensis binary (large strings build variant) in /usr/local/nsis/nsis-2.46
 
+
+*** NSIS "large strings build" download for Windows:
+
+Follow the link on this page: http://nsis.sourceforge.net/Special_Builds
+

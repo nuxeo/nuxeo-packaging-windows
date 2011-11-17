@@ -46,10 +46,21 @@
             <isset property="${env.package.filename}" />
         </condition>
         <!-- nsis settings -->
-        <condition property="nsis.location" value="${env.nsis.location}"
-                   else="/usr/local/nsis/nsis-2.46/makensis">
-            <isset property="${env.nsis.location}" />
-        </condition>
+        <if>
+            <os family="windows" />
+            <then>
+                <condition property="nsis.location" value="${env.nsis.location}"
+                           else="C:/Program Files (x86)/NSIS/makensis.exe">
+                    <isset property="${env.nsis.location}" />
+                </condition>
+            </then>
+            <else>
+                <condition property="nsis.location" value="${env.nsis.location}"
+                           else="/usr/local/nsis/nsis-2.46/makensis">
+                    <isset property="${env.nsis.location}" />
+                </condition>
+            </else>
+        </if>
     </target>
 
     <target name="setup" depends="init">

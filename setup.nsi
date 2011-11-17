@@ -1,7 +1,9 @@
 !include setup.nsh
 
+Name "${PRODUCTNAME}"
+
 # General Symbol Definitions
-!define REGKEY "SOFTWARE\$(^Name)"
+!define REGKEY "SOFTWARE\${PRODUCTNAME}"
 !define COMPANY Nuxeo
 !define URL http://www.nuxeo.com/
 
@@ -11,7 +13,7 @@
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${REGKEY}"
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME MultiUserInstallMode
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
-!define MULTIUSER_INSTALLMODE_INSTDIR "$(^Name)"
+!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCTNAME}"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${REGKEY}"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUE "Path"
 
@@ -22,7 +24,7 @@
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "$(^Name)"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCTNAME}"
 !define MUI_UNICON "${NUXEO_RESOURCES_DIR}${SEP}uninstall.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_LANGDLL_REGISTRY_ROOT HKLM
@@ -86,17 +88,17 @@ UninstPage custom un.SelectRemove un.GetSelectedRemove
 !insertmacro MUI_LANGUAGE Italian
 
 # Installer attributes
-InstallDir "$(^Name)"
+InstallDir "${PRODUCTNAME}"
 CRCCheck on
 XPStyle on
 ShowInstDetails show
-VIAddVersionKey /LANG=${LANG_ENGLISH} ProductName "$(^Name)"
+VIAddVersionKey /LANG=${LANG_ENGLISH} ProductName "${PRODUCTNAME}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} ProductVersion "${VERSION}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyName "${COMPANY}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyWebsite "${URL}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} FileVersion "${VERSION}"
-VIAddVersionKey /LANG=${LANG_ENGLISH} FileDescription ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright ""
+VIAddVersionKey /LANG=${LANG_ENGLISH} FileDescription "Nuxeo Enterprise Content Management"
+VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "Nuxeo SA 2006-2011"
 InstallDirRegKey HKLM "${REGKEY}" Path
 ShowUninstDetails show
 
@@ -116,16 +118,16 @@ Section -Main SEC0000
     # Delete nuxeo.conf from the main product tree
     Delete bin\nuxeo.conf
     # and add it to $APPDATA (without overwriting existing ones)
-    IfFileExists "$APPDATA\$(^Name)\conf\nuxeo.conf" nuxeoconfdone
-    SetOutPath "$APPDATA\$(^Name)\conf"
+    IfFileExists "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf" nuxeoconfdone
+    SetOutPath "$APPDATA\${PRODUCTNAME}\conf"
     SetOverwrite Off # just to be safe
     File ${NUXEO_DISTRIBUTION_DIR}${SEP}bin${SEP}nuxeo.conf
-    FileOpen $2 "$APPDATA\$(^Name)\conf\nuxeo.conf" a
+    FileOpen $2 "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf" a
     FileSeek $2 0 END
     FileWrite $2 "$\r$\n"
-    FileWrite $2 "nuxeo.data.dir=$APPDATA\$(^Name)\data$\r$\n"
-    FileWrite $2 "nuxeo.log.dir=$APPDATA\$(^Name)\logs$\r$\n"
-    FileWrite $2 "nuxeo.tmp.dir=$APPDATA\$(^Name)\tmp$\r$\n"
+    FileWrite $2 "nuxeo.data.dir=$APPDATA\${PRODUCTNAME}\data$\r$\n"
+    FileWrite $2 "nuxeo.log.dir=$APPDATA\${PRODUCTNAME}\logs$\r$\n"
+    FileWrite $2 "nuxeo.tmp.dir=$APPDATA\${PRODUCTNAME}\tmp$\r$\n"
     ${If} $InstallPGSQL == 1
         FileWrite $2 "nuxeo.templates=default,postgresql$\r$\n"
         FileWrite $2 "nuxeo.db.host=localhost$\r$\n"
@@ -137,8 +139,8 @@ Section -Main SEC0000
     FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
     FileClose $2
     nuxeoconfdone:
-    AccessControl::GrantOnFile "$APPDATA\$(^Name)" "(BU)" "FullAccess"
-    WriteRegStr HKLM "${REGKEY}" ConfigFile "$APPDATA\$(^Name)\conf\nuxeo.conf"
+    AccessControl::GrantOnFile "$APPDATA\${PRODUCTNAME}" "(BU)" "FullAccess"
+    WriteRegStr HKLM "${REGKEY}" ConfigFile "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf"
     SetOverwrite On
 
     # Include local 3rd parties (pdftohtml, ...)
@@ -151,13 +153,13 @@ Section -Main SEC0000
 
     # Create a new file so NuxeoCtl can find out what product is running
     FileOpen $2 "$INSTDIR\bin\ProductName.txt" w
-    FileWrite $2 "$(^Name)"
+    FileWrite $2 "${PRODUCTNAME}"
     FileClose $2
 
     # Create tmp dir
-    SetOutPath "$APPDATA\$(^Name)\tmp"
+    SetOutPath "$APPDATA\${PRODUCTNAME}\tmp"
     # Give full access to group "Builtin Users"
-    AccessControl::GrantOnFile "$APPDATA\$(^Name)\tmp" "(BU)" "FullAccess"
+    AccessControl::GrantOnFile "$APPDATA\${PRODUCTNAME}\tmp" "(BU)" "FullAccess"
 
     # PostgreSQL setup :
     ${If} $InstallPGSQL == 1
@@ -166,7 +168,7 @@ Section -Main SEC0000
         ExecWait "sc stop postgresql-8.4"
         Sleep 5000 # Hope the service will be stopped after 5 seconds
         # overwrite postgresql.conf with ours
-        SetOutPath $APPDATA\$(^Name)\pgsql
+        SetOutPath $APPDATA\${PRODUCTNAME}\pgsql
         File ${NUXEO_RESOURCES_DIR}${SEP}contrib${SEP}postgresql.conf
         # create pgpass file (in the "current user" context)
         ${If} $MultiUser.InstallMode == AllUsers
@@ -189,7 +191,7 @@ Section -Main SEC0000
     ${EndIf}
 
     SetOutPath $INSTDIR\bin
-    CreateShortcut "$DESKTOP\$(^Name).lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
+    CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 
 SectionEnd
@@ -201,17 +203,17 @@ Section -post SEC0001
     StrCpy $0 "manual"
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     SetOutPath $SMPROGRAMS\$StartMenuGroup
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\${PRODUCTNAME}.lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
 	CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^UninstallLink).lnk" $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_END
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\uninstall.exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" DisplayName "${PRODUCTNAME}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" DisplayVersion "${VERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" Publisher "${COMPANY}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" URLInfoAbout "${URL}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" DisplayIcon $INSTDIR\uninstall.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" UninstallString $INSTDIR\uninstall.exe
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" NoModify 1
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" NoRepair 1
 SectionEnd
 
 # Macro for selecting uninstaller sections
@@ -229,27 +231,27 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
-    Delete /REBOOTOK "$DESKTOP\$(^Name).lnk"
+    Delete /REBOOTOK "$DESKTOP\${PRODUCTNAME}.lnk"
     RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
     ${If} $RemoveTmp == 1
-        RmDir /r /REBOOTOK "$APPDATA\$(^Name)\tmp"
+        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\tmp"
     ${EndIf}
     ${If} $RemoveData == 1
-        RmDir /r /REBOOTOK "$APPDATA\$(^Name)\data"
+        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\data"
     ${EndIf}
     ${If} $RemoveLogs == 1
-        RmDir /r /REBOOTOK "$APPDATA\$(^Name)\logs"
+        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\logs"
     ${EndIf}
     ${If} $RemoveConf == 1
-        RmDir /r /REBOOTOK "$APPDATA\$(^Name)\conf"
+        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\conf"
     ${EndIf}
-    RmDir "$APPDATA\$(^Name)"
+    RmDir "$APPDATA\${PRODUCTNAME}"
 SectionEnd
 
 Section -un.post UNSEC0001
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${PRODUCTNAME}.lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^UninstallLink).lnk"
     Delete /REBOOTOK $INSTDIR\uninstall.exe
     RmDir /REBOOTOK $INSTDIR
@@ -469,7 +471,7 @@ Function GetPGSQL
     StrCmp $R0 "success" +3
     MessageBox MB_OK "PostgreSQL download failed: $R0"
     Quit
-    ExecWait "$2 --mode unattended --unattendedmodeui minimal --installer-language en --servicepassword postgres --superpassword postgres --datadir $\"$APPDATA\$(^Name)\pgsql$\" --create_shortcuts 1"
+    ExecWait "$2 --mode unattended --unattendedmodeui minimal --installer-language en --servicepassword postgres --superpassword postgres --datadir $\"$APPDATA\${PRODUCTNAME}\pgsql$\" --create_shortcuts 1"
     Delete $2
 FunctionEnd
 
@@ -755,11 +757,11 @@ FunctionEnd
 # Installer Language Strings
 # TODO Update the Language Strings with the appropriate translations.
 
-LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall $(^Name)"
-LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller $(^Name)"
-LangString ^UninstallLink ${LANG_SPANISH} "Uninstall $(^Name)"
-LangString ^UninstallLink ${LANG_GERMAN} "Uninstall $(^Name)"
-LangString ^UninstallLink ${LANG_ITALIAN} "Uninstall $(^Name)"
+LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_SPANISH} "Uninstall ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_GERMAN} "Uninstall ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_ITALIAN} "Uninstall ${PRODUCTNAME}"
 
 # Other localizations
 

@@ -54,14 +54,14 @@
 
     <target name="setup" depends="init">
         <echo file="${out.dir}/setup.nsh" append="false">
-Name "${package.name}"
 OutFile "${out.dir}${file.separator}${package.filename}"
 VIProductVersion "${package.version}"
 !define SEP "${file.separator}"
+!define PRODUCTNAME "${package.name}"
 !define NUXEO_RESOURCES_DIR "${resources.dir.os}"
 !define NUXEO_DISTRIBUTION_DIR "${distribution.dir.os}"
 !define VERSION "${distribution.version}"
-        </echo>
+</echo>
     </target>
 
     <target name="compile" depends="setup">
@@ -100,6 +100,11 @@ VIProductVersion "${package.version}"
         <delete includeEmptyDirs="true">
             <fileset dir="${out.dir}/tmpdist" />
         </delete>
+
+        <!-- add package type to distribution.properties -->
+        <echo file="${distribution.dir}/templates/common/config/distribution.properties" append="true">
+org.nuxeo.distribution.package=exe
+</echo>
 
         <dirname property="nsis.dir" file="${nsis.location}" />
         <exec executable="${nsis.location}"

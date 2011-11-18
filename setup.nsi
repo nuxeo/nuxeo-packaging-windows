@@ -512,7 +512,7 @@ Function SelectDependencies
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateLabel} 0 $3u 90% 12u "Java 7 Development Kit"
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 7 Development Kit"
             Pop $javabox
             IntOp $3 $3 + 26
             ${NSD_Check} $javabox

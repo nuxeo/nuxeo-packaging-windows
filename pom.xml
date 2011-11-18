@@ -27,7 +27,7 @@
             <plugin>
                 <groupId>org.nuxeo.build</groupId>
                 <artifactId>nuxeo-distribution-tools</artifactId>
-                <version>1.10.2</version>
+                <version>1.11-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -112,10 +112,10 @@
                     <uniqueVersion>true</uniqueVersion>
                 </snapshotRepository>
             </distributionManagement>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
     </profiles>
-    <activeProfiles>
-        <activeProfile>qa</activeProfile>
-    </activeProfiles>
 
 </project>

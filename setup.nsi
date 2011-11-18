@@ -32,13 +32,16 @@ Name "${PRODUCTNAME}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME InstallerLanguage
 
 # Nuxeo
-!define NUXEO_PRODUCT_ICON "nuxeo-dm.ico"
+!define NUXEO_PRODUCT_ICON "nuxeo.ico"
 
 # Included files
 !include x64.nsh
 !include MultiUser.nsh
 !include Sections.nsh
 !include MUI2.nsh
+!include "StrFunc.nsh"
+
+${StrLoc} # Initialize function for use in install sections
 
 # Reserved Files
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -46,10 +49,12 @@ Name "${PRODUCTNAME}"
 # Variables
 Var StartMenuGroup
 
+Var JavaExe
 Var javabox
 Var InstallJava
-Var ooobox
-Var InstallOOo
+
+Var officebox
+Var InstallOffice
 
 Var pgsqlbox
 Var InstallPGSQL
@@ -192,17 +197,13 @@ Section -Main SEC0000
     CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 
-SectionEnd
-
-Section -post SEC0001
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     SetOutPath $INSTDIR
     WriteUninstaller $INSTDIR\uninstall.exe
-    StrCpy $0 "manual"
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     CreateShortcut "$SMPROGRAMS\$StartMenuGroup\${PRODUCTNAME}.lnk" "$INSTDIR\bin\Start Nuxeo.bat" "" "$INSTDIR\${NUXEO_PRODUCT_ICON}"
-	CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^UninstallLink).lnk" $INSTDIR\uninstall.exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^UninstallLink).lnk" $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" DisplayName "${PRODUCTNAME}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" DisplayVersion "${VERSION}"
@@ -245,9 +246,7 @@ Section /o -un.Main UNSEC0000
         RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\conf"
     ${EndIf}
     RmDir "$APPDATA\${PRODUCTNAME}"
-SectionEnd
 
-Section -un.post UNSEC0001
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${PRODUCTNAME}.lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^UninstallLink).lnk"
@@ -294,7 +293,21 @@ Function CheckJava
            "CurrentVersion"
     StrCmp $2 "1.6" foundjava
     StrCmp $2 "1.7" foundjava
-    # We didn't find a JDK
+    # We didn't find an adequate JDK in the registry
+    # Assume we're now looking for OpenJDK
+    # 1) Check in PATH
+    StrCpy $JavaExe "java.exe"
+    Call CheckJavaExe
+    Pop $2
+    StrCmp $2 1 foundjava
+    # 2) Check in JAVA_HOME
+    ReadEnvStr $2 "JAVA_HOME"
+    StrCpy $JavaExe "$2\bin\java.exe"
+    Call CheckJavaExe
+    Pop $2
+    StrCmp $2 1 foundjava
+    # Still no suitable java!
+    notjava:
     Push 0
     Goto done
     foundjava:
@@ -302,43 +315,70 @@ Function CheckJava
     done:
 FunctionEnd
 
-Function CheckOOo
-    # 64bit arch with 64bit OOo
+Function CheckJavaExe
+    # Check whether a given java.exe exists and is suitable
+    nsExec::ExecToStack '"$JavaExe" -version'
+    Pop $1
+    Pop $2
+    StrCmp $1 "error" notjava
+    ${StrLoc} $3 "$2" "1.6.0" ">"
+    StrCmp $3 "" notjava6
+    Goto checkopenjdk
+    notjava6:
+    ${StrLoc} $3 "$2" "1.7.0" ">"
+    StrCmp $3 "" notjava7
+    Goto checkopenjdk
+    notjava7:
+    # Check for java 8 here!
+    Goto notjava
+    checkopenjdk:
+    ${StrLoc} $3 "$2" "OpenJDK" ">"
+    StrCmp $3 "" notjava
+    # Looks like we found our matching OpenJDK!
+    Push 1
+    Goto done
+    notjava:
+    Push 0
+    done:
+FunctionEnd
+
+Function CheckOffice
+    # 64bit arch with 64bit Office
     ${If} ${RunningX64}
         SetRegView 64
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE" $1
-            StrCmp $2 "OpenOffice.org" foundooo
-            StrCmp $2 "LibreOffice" foundooo
+            StrCmp $2 "OpenOffice.org" foundoffice
+            StrCmp $2 "LibreOffice" foundoffice
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
-    # 64bit arch with 32bit OOo
+    # 64bit arch with 32bit Office
     ${If} ${RunningX64}
         SetRegView 64
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node" $1
-            StrCmp $2 "OpenOffice.org" foundooo
-            StrCmp $2 "LibreOffice" foundooo
+            StrCmp $2 "OpenOffice.org" foundoffice
+            StrCmp $2 "LibreOffice" foundoffice
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
-    # 32bit arch with 32bit OOo
+    # 32bit arch with 32bit Office
     StrCpy $1 0
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE" $1
-        StrCmp $2 "OpenOffice.org" foundooo
-        StrCmp $2 "LibreOffice" foundooo
+        StrCmp $2 "OpenOffice.org" foundoffice
+        StrCmp $2 "LibreOffice" foundoffice
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
-    # We didn't find OpenOffice.org
+    # We didn't find OpenOffice.org or LibreOffice
     Push 0
     Goto done
-    foundooo:
+    foundoffice:
     Push 1
     done:
     SetRegView 32
@@ -385,11 +425,12 @@ FunctionEnd
 
 Function GetJava
     Var /GLOBAL JavaURL
+    # Current BundleIds are for Oracle Java7 JDK 7u1
     ${If} ${RunningX64}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk_x64.exe"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55071"
         StrCpy $2 "$TEMP/jdk-x64.exe"
     ${Else}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk_x86.exe"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55070"
         StrCpy $2 "$TEMP/jdk-x86.exe"
     ${EndIf}
     nsisdl::download /TIMEOUT=30000 $JavaURL $2
@@ -401,12 +442,12 @@ Function GetJava
     Delete $2
 FunctionEnd
 
-Function GetOOo
-    StrCpy $2 "$TEMP/OOo.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/OOo/OOo.exe" $2
+Function GetOffice
+    StrCpy $2 "$TEMP/Office.exe"
+    nsisdl::download /TIMEOUT=30000 "http://download.documentfoundation.org/libreoffice/stable/3.4.4/win/x86/LibO_3.4.4_Win_x86_install_multi.exe" $2
     Pop $R0
     StrCmp $R0 "success" +3
-    MessageBox MB_OK "OpenOffice.org download failed: $R0"
+    MessageBox MB_OK "LibreOffice download failed: $R0"
     Quit
     ExecWait "$2 /S /GUILEVEL=qr"
     Delete $2
@@ -414,7 +455,7 @@ FunctionEnd
 
 Function GetPGSQL
     StrCpy $2 "$TEMP/postgresql-8.4.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/pgsql/postgresql-8.4.exe" $2
+    nsisdl::download /TIMEOUT=30000 "http://get.enterprisedb.com/postgresql/postgresql-8.4.9-1-windows.exe" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "PostgreSQL download failed: $R0"
@@ -437,19 +478,19 @@ Function SelectDependencies
         StrCpy $NeedDialog 1
     ${EndIf}
 
-    Var /GLOBAL HasOOo
-    StrCpy $ooobox 0
-    Call CheckOOo
-    Pop $HasOOo
-    ${If} $HasOOo == 0
+    Var /GLOBAL HasOffice
+    StrCpy $officebox 0
+    Call CheckOffice
+    Pop $HasOffice
+    ${If} $HasOffice == 0
         StrCpy $NeedDialog 1
     ${EndIf}
 
-	Var /GLOBAL HasPGSQL
+    Var /GLOBAL HasPGSQL
     StrCpy $pgsqlbox 0
     Call CheckPGSQL
     Pop $HasPGSQL
-	${If} $HasPGSQL == 0
+    ${If} $HasPGSQL == 0
         StrCpy $NeedDialog 1
     ${EndIf}
     
@@ -468,24 +509,26 @@ Function SelectDependencies
         ${If} $HasJava == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_java)
             Pop $0
+            CreateFont $4 "MS Shell Dlg" 10 700
+            SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 6 Development Kit"
+            ${NSD_CreateLabel} 0 $3u 90% 12u "Java 7 Development Kit"
             Pop $javabox
             IntOp $3 $3 + 26
             ${NSD_Check} $javabox
         ${EndIf}
 
-        ${If} $HasOOo == 0
-            ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_ooo)
+        ${If} $HasOffice == 0
+            ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_office)
             Pop $0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "OpenOffice.org"
-            Pop $ooobox
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "LibreOffice"
+            Pop $officebox
             IntOp $3 $3 + 26
-            ${NSD_Check} $ooobox
+            ${NSD_Check} $officebox
         ${EndIf}
         
-		${If} $HasPGSQL == 0
+        ${If} $HasPGSQL == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_pgsql)
             Pop $0
             IntOp $3 $3 + 13
@@ -510,23 +553,23 @@ Function GetSelectedDependencies
             StrCpy $InstallJava 1
         ${EndIf}
     ${EndIf}
-    
-    ${If} $ooobox != 0
-        StrCpy $InstallOOo 0
-        ${NSD_GetState} $ooobox $0
+
+    ${If} $officebox != 0
+        StrCpy $InstallOffice 0
+        ${NSD_GetState} $officebox $0
         ${If} $0 == ${BST_CHECKED}
-            StrCpy $InstallOOo 1
+            StrCpy $InstallOffice 1
         ${EndIf}
     ${EndIf}
-    
-	${If} $pgsqlbox != 0
+
+    ${If} $pgsqlbox != 0
         StrCpy $InstallPGSQL 0
         ${NSD_GetState} $pgsqlbox $0
         ${If} $0 == ${BST_CHECKED}
             StrCpy $InstallPGSQL 1
         ${EndIf}
     ${EndIf}
-    
+
 FunctionEnd
 
 # Dependencies Installation
@@ -536,10 +579,10 @@ Function InstallDependencies
     ${If} $InstallJava == 1
         Call GetJava
     ${EndIf}
-    ${If} $InstallOOo == 1
-        Call GetOOo
+    ${If} $InstallOffice == 1
+        Call GetOffice
     ${EndIf}
-	${If} $InstallPGSQL == 1
+    ${If} $InstallPGSQL == 1
         Call GetPGSQL
     ${EndIf}
 FunctionEnd
@@ -548,15 +591,15 @@ FunctionEnd
 
 Function GetPGSQLSettings
     StrCpy $PGPath ""
-	StrCpy $PGUser ""
+    StrCpy $PGUser ""
     # 64bit arch with 64bit PostgreSQL
     ${If} ${RunningX64}
         SetRegView 64
-		StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-8.4"
+        StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-8.4"
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
-			StrCmp $2 "postgresql-8.4" foundpgsql
+            StrCmp $2 "postgresql-8.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -568,7 +611,7 @@ Function GetPGSQLSettings
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
-		    StrCmp $2 "postgresql-8.4" foundpgsql
+            StrCmp $2 "postgresql-8.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -578,16 +621,16 @@ Function GetPGSQLSettings
     StrCpy $1 0
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
-		StrCmp $2 "postgresql-8.4" foundpgsql
+        StrCmp $2 "postgresql-8.4" foundpgsql
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find PostgreSQL
     DetailPrint "Error try to get PostgreSQL settings"
     Goto done
     foundpgsql:
-	ReadRegStr $PGPath HKLM $5 "Base Directory"
-	ReadRegStr $PGUser HKLM $5 "Super User"
-	done:
+    ReadRegStr $PGPath HKLM $5 "Base Directory"
+    ReadRegStr $PGUser HKLM $5 "Super User"
+    done:
     SetRegView 32
 FunctionEnd
 
@@ -679,8 +722,8 @@ FunctionEnd
 LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_SPANISH} "Uninstall ${PRODUCTNAME}"
-LangString ^UninstallLink ${LANG_GERMAN} "Uninstall ${PRODUCTNAME}"
-LangString ^UninstallLink ${LANG_ITALIAN} "Uninstall ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_GERMAN} "Demontieren Sie ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_ITALIAN} "Rimuovere ${PRODUCTNAME}"
 
 # Other localizations
 
@@ -694,12 +737,12 @@ LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_i
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ENGLISH} "Required for the program to run:"
-LangString dep_explain_ooo ${LANG_ENGLISH} "Required for document preview and conversion:"
+LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ENGLISH} "Removal options"
-LangString rm_subtitle ${LANG_ENGLISH} "Do you want to remove the following ?"
+LangString rm_subtitle ${LANG_ENGLISH} "Do you want to remove the following?"
 LangString rm_tmp ${LANG_ENGLISH} "Temporary files"
 LangString rm_data ${LANG_ENGLISH} "Data files"
 LangString rm_logs ${LANG_ENGLISH} "Log files"
@@ -709,9 +752,9 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_java ${LANG_FRENCH} "Nécessaire pour exécuter le programme :"
-LangString dep_explain_ooo ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents :"
-LangString dep_explain_pgsql ${LANG_FRENCH}  "EXPÉRIMENTAL - Configurer une base PostgreSQL automatiquement :"
+LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: JDK 6 ou 7 non détecté"
+LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
+LangString dep_explain_pgsql ${LANG_FRENCH}  "EXPÉRIMENTAL - Configurer une base PostgreSQL automatiquement:"
 
 LangString rm_title ${LANG_FRENCH} "Options de suppression"
 LangString rm_subtitle ${LANG_FRENCH} "Voulez-vous supprimer les éléments suivants ?"
@@ -723,13 +766,13 @@ LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 # Spanish
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
-LangString dep_subtitle ${LANG_SPANISH} "Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "Requerido por el programar para ejecutarse :"
-LangString dep_explain_ooo ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos :"
-LangString dep_explain_pgsql ${LANG_SPANISH}  "(ES) EXPERIMENTAL - Automatically configure PostgreSQL database :"
+LangString dep_subtitle ${LANG_SPANISH} "(ES) WARNING: Descargue e instale las siguientes dependencias"
+LangString dep_explain_java ${LANG_SPANISH} "(ES) Could not detect JDK 6 or 7"
+LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
+LangString dep_explain_pgsql ${LANG_SPANISH}  "(ES) EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_SPANISH} "(ES) Removal options"
-LangString rm_subtitle ${LANG_SPANISH} "(ES) Do you want to remove the following ?"
+LangString rm_subtitle ${LANG_SPANISH} "(ES) Do you want to remove the following?"
 LangString rm_tmp ${LANG_SPANISH} "Borrar TMP"
 LangString rm_data ${LANG_SPANISH} "Borrar datos"
 LangString rm_logs ${LANG_SPANISH} "Borrar logs"
@@ -738,13 +781,13 @@ LangString rm_conf ${LANG_SPANISH} "Borrar configuración"
 # German
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
-LangString dep_subtitle ${LANG_GERMAN} "Lädt und installiert folgende Abhängigkeiten herunter"
-LangString dep_explain_java ${LANG_GERMAN} "Wird von der Anwendung während der Laufzeit benötigt :"
-LangString dep_explain_ooo ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt :"
-LangString dep_explain_pgsql ${LANG_GERMAN}  "(DE) EXPERIMENTAL - Automatically configure PostgreSQL database :"
+LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
+LangString dep_explain_java ${LANG_GERMAN} "(DE) WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
+LangString dep_explain_pgsql ${LANG_GERMAN}  "EXPERIMENTELL - Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
-LangString rm_title ${LANG_GERMAN} "(DE) Removal options"
-LangString rm_subtitle ${LANG_GERMAN} "(DE) Do you want to remove the following ?"
+LangString rm_title ${LANG_GERMAN} "Demontierbare Optionen"
+LangString rm_subtitle ${LANG_GERMAN} "Wollen Sie das folgende demontieren ?"
 LangString rm_tmp ${LANG_GERMAN} "TMP löschen"
 LangString rm_data ${LANG_GERMAN} "Daten löschen"
 LangString rm_logs ${LANG_GERMAN} "Log-Infos löschen"
@@ -752,16 +795,16 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 
 # Italian
 
-LangString dep_title ${LANG_ITALIAN} "(IT) Dependencies"
-LangString dep_subtitle ${LANG_ITALIAN} "(IT) Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ITALIAN} "(IT) Required for the program to run:"
-LangString dep_explain_ooo ${LANG_ITALIAN} "(IT) Required for document preview and conversion:"
-LangString dep_explain_pgsql ${LANG_ITALIAN}  "(IT) EXPERIMENTAL - Automatically configure PostgreSQL database:"
+LangString dep_title ${LANG_ITALIAN} "Dipendenze"
+LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
+LangString dep_explain_java ${LANG_ITALIAN} "(IT) WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
+LangString dep_explain_pgsql ${LANG_ITALIAN}  "SPERIMENTALE - Configura automaticamente il database PostgreSQL:"
 
-LangString rm_title ${LANG_ITALIAN} "(IT) Removal options"
-LangString rm_subtitle ${LANG_ITALIAN} "(IT) Do you want to remove the following ?"
-LangString rm_tmp ${LANG_ITALIAN} "(IT) TMP files"
-LangString rm_data ${LANG_ITALIAN} "(IT) Data files"
-LangString rm_logs ${LANG_ITALIAN} "(IT) Log files"
-LangString rm_conf ${LANG_ITALIAN} "(IT) Configuration files"
+LangString rm_title ${LANG_ITALIAN} "Opzioni di rimozione"
+LangString rm_subtitle ${LANG_ITALIAN} "Vuoi rimuovere il seguente?"
+LangString rm_tmp ${LANG_ITALIAN} "file temporanei"
+LangString rm_data ${LANG_ITALIAN} "file di Dati"
+LangString rm_logs ${LANG_ITALIAN} "file di Log"
+LangString rm_conf ${LANG_ITALIAN} "file di Configurazione"
 

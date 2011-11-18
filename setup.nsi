@@ -50,8 +50,6 @@ Var javabox
 Var InstallJava
 Var ooobox
 Var InstallOOo
-Var imagickbox
-Var InstallImageMagick
 
 Var pgsqlbox
 Var InstallPGSQL
@@ -346,45 +344,6 @@ Function CheckOOo
     SetRegView 32
 FunctionEnd
 
-Function CheckImageMagick
-    # 64bit arch with 64bit ImageMagick
-    ${If} ${RunningX64}
-        SetRegView 64
-        StrCpy $1 0
-        ${Do}
-            EnumRegKey $2 HKLM "SOFTWARE" $1
-            StrCmp $2 "ImageMagick" foundimagick
-            IntOp $1 $1 + 1
-        ${LoopWhile} $2 != ""
-        SetRegView 32
-    ${EndIf}
-    # 64bit arch with 32bit ImageMagick
-    ${If} ${RunningX64}
-        SetRegView 64
-        StrCpy $1 0
-        ${Do}
-            EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node" $1
-            StrCmp $2 "ImageMagick" foundimagick
-            IntOp $1 $1 + 1
-        ${LoopWhile} $2 != ""
-        SetRegView 32
-    ${EndIf}
-    # 32bit arch with 32bit ImageMagick
-    StrCpy $1 0
-    ${Do}
-        EnumRegKey $2 HKLM "SOFTWARE" $1
-        StrCmp $2 "ImageMagick" foundimagick
-        IntOp $1 $1 + 1
-    ${LoopWhile} $2 != ""
-    # We didn't find ImageMagick
-    Push 0
-    Goto done
-    foundimagick:
-    Push 1
-    done:
-    SetRegView 32
-FunctionEnd
-
 Function CheckPGSQL
     # 64bit arch with 64bit PostgreSQL
     ${If} ${RunningX64}
@@ -453,17 +412,6 @@ Function GetOOo
     Delete $2
 FunctionEnd
 
-Function GetImageMagick
-    StrCpy $2 "$TEMP/ImageMagick.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/imagemagick/ImageMagick.exe" $2
-    Pop $R0
-    StrCmp $R0 "success" +3
-    MessageBox MB_OK "ImageMagick download failed: $R0"
-    Quit
-    ExecWait "$2 /SILENT"
-    Delete $2
-FunctionEnd
-
 Function GetPGSQL
     StrCpy $2 "$TEMP/postgresql-8.4.exe"
     nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/pgsql/postgresql-8.4.exe" $2
@@ -497,14 +445,6 @@ Function SelectDependencies
         StrCpy $NeedDialog 1
     ${EndIf}
 
-    Var /GLOBAL HasImageMagick
-    StrCpy $imagickbox 0
-    Call CheckImageMagick
-    Pop $HasImageMagick
-    ${If} $HasImageMagick == 0
-        StrCpy $NeedDialog 1
-    ${EndIf}
-    
 	Var /GLOBAL HasPGSQL
     StrCpy $pgsqlbox 0
     Call CheckPGSQL
@@ -545,16 +485,6 @@ Function SelectDependencies
             ${NSD_Check} $ooobox
         ${EndIf}
         
-        ${If} $HasImageMagick == 0
-            ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_imagick)
-            Pop $0
-            IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "ImageMagick"
-            Pop $imagickbox
-            IntOp $3 $3 + 26
-            ${NSD_Check} $imagickbox
-        ${EndIf}
-		
 		${If} $HasPGSQL == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_pgsql)
             Pop $0
@@ -589,14 +519,6 @@ Function GetSelectedDependencies
         ${EndIf}
     ${EndIf}
     
-    ${If} $imagickbox != 0
-        StrCpy $InstallImageMagick 0
-        ${NSD_GetState} $imagickbox $0
-        ${If} $0 == ${BST_CHECKED}
-            StrCpy $InstallImageMagick 1
-        ${EndIf}
-    ${EndIf}
-	
 	${If} $pgsqlbox != 0
         StrCpy $InstallPGSQL 0
         ${NSD_GetState} $pgsqlbox $0
@@ -616,9 +538,6 @@ Function InstallDependencies
     ${EndIf}
     ${If} $InstallOOo == 1
         Call GetOOo
-    ${EndIf}
-    ${If} $InstallImageMagick == 1
-        Call GetImageMagick
     ${EndIf}
 	${If} $InstallPGSQL == 1
         Call GetPGSQL
@@ -777,7 +696,6 @@ LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
 LangString dep_explain_java ${LANG_ENGLISH} "Required for the program to run:"
 LangString dep_explain_ooo ${LANG_ENGLISH} "Required for document preview and conversion:"
-LangString dep_explain_imagick ${LANG_ENGLISH}  "Required for image conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ENGLISH} "Removal options"
@@ -793,7 +711,6 @@ LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
 LangString dep_explain_java ${LANG_FRENCH} "Nécessaire pour exécuter le programme :"
 LangString dep_explain_ooo ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents :"
-LangString dep_explain_imagick ${LANG_FRENCH}  "Nécessaire pour la conversion des images :"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "EXPÉRIMENTAL - Configurer une base PostgreSQL automatiquement :"
 
 LangString rm_title ${LANG_FRENCH} "Options de suppression"
@@ -809,7 +726,6 @@ LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "Descargue e instale las siguientes dependencias"
 LangString dep_explain_java ${LANG_SPANISH} "Requerido por el programar para ejecutarse :"
 LangString dep_explain_ooo ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos :"
-LangString dep_explain_imagick ${LANG_SPANISH}  "Requerido para la conversión de imágenes :"
 LangString dep_explain_pgsql ${LANG_SPANISH}  "(ES) EXPERIMENTAL - Automatically configure PostgreSQL database :"
 
 LangString rm_title ${LANG_SPANISH} "(ES) Removal options"
@@ -825,7 +741,6 @@ LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt und installiert folgende Abhängigkeiten herunter"
 LangString dep_explain_java ${LANG_GERMAN} "Wird von der Anwendung während der Laufzeit benötigt :"
 LangString dep_explain_ooo ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt :"
-LangString dep_explain_imagick ${LANG_GERMAN}  "Wird für die Bildkonvertierung benötigt :"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "(DE) EXPERIMENTAL - Automatically configure PostgreSQL database :"
 
 LangString rm_title ${LANG_GERMAN} "(DE) Removal options"
@@ -841,7 +756,6 @@ LangString dep_title ${LANG_ITALIAN} "(IT) Dependencies"
 LangString dep_subtitle ${LANG_ITALIAN} "(IT) Download and install the following dependencies"
 LangString dep_explain_java ${LANG_ITALIAN} "(IT) Required for the program to run:"
 LangString dep_explain_ooo ${LANG_ITALIAN} "(IT) Required for document preview and conversion:"
-LangString dep_explain_imagick ${LANG_ITALIAN}  "(IT) Required for image conversion:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "(IT) EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ITALIAN} "(IT) Removal options"

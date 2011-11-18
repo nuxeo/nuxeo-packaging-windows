@@ -5,7 +5,6 @@
 - Create a directory for nsis (/usr/local/nsis)
 - Download and uncompress nsis-2.46.zip and nsis-2.46-src.tar.bz2 from http://nsis.sourceforge.net/ in that directory
 
-
 2) Add the plugin we use for the installer builds
 
 - Download the Access Control plugin (http://nsis.sourceforge.net/AccessControl_plug-in)
@@ -27,4 +26,5 @@ scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all NSIS_CONFIG_CONST
 *** NSIS "large strings build" download for Windows:
 
 Follow the link on this page: http://nsis.sourceforge.net/Special_Builds
+(this is in addition to the regular NSIS download, not a standalone version)
 

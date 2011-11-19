@@ -425,12 +425,13 @@ FunctionEnd
 
 Function GetJava
     Var /GLOBAL JavaURL
-    # Current BundleIds are for Oracle Java7 JDK 7u1
+    # BundleIds for Oracle Java6 JDK 6u27 : x64=52417, i586=52416
+    # BundleIds for Oracle Java7 JDK 7u1 : x64=55071, i586=55070
     ${If} ${RunningX64}
-        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55071"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=52417"
         StrCpy $2 "$TEMP/jdk-x64.exe"
     ${Else}
-        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55070"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=52416"
         StrCpy $2 "$TEMP/jdk-x86.exe"
     ${EndIf}
     nsisdl::download /TIMEOUT=30000 $JavaURL $2
@@ -512,7 +513,7 @@ Function SelectDependencies
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 7 Development Kit"
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 6 Development Kit"
             Pop $javabox
             IntOp $3 $3 + 26
             ${NSD_Check} $javabox

@@ -722,7 +722,7 @@ FunctionEnd
 
 LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller ${PRODUCTNAME}"
-LangString ^UninstallLink ${LANG_SPANISH} "Uninstall ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_SPANISH} "Desinstalar ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_GERMAN} "Demontieren Sie ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_ITALIAN} "Rimuovere ${PRODUCTNAME}"
 
@@ -767,23 +767,23 @@ LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 # Spanish
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
-LangString dep_subtitle ${LANG_SPANISH} "(ES) WARNING: Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "(ES) Could not detect JDK 6 or 7"
+LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
+LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado JDK 6 or 7"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
-LangString dep_explain_pgsql ${LANG_SPANISH}  "(ES) EXPERIMENTAL - Automatically configure PostgreSQL database:"
+LangString dep_explain_pgsql ${LANG_SPANISH}  "EXPERIMENTAL - Configurar automáticamente la base de datos PostgreSQL:"
 
-LangString rm_title ${LANG_SPANISH} "(ES) Removal options"
-LangString rm_subtitle ${LANG_SPANISH} "(ES) Do you want to remove the following?"
-LangString rm_tmp ${LANG_SPANISH} "Borrar TMP"
-LangString rm_data ${LANG_SPANISH} "Borrar datos"
-LangString rm_logs ${LANG_SPANISH} "Borrar logs"
-LangString rm_conf ${LANG_SPANISH} "Borrar configuración"
+LangString rm_title ${LANG_SPANISH} "Opciones de eliminado"
+LangString rm_subtitle ${LANG_SPANISH} "¿Desea eliminar el siguiente?"
+LangString rm_tmp ${LANG_SPANISH} "Archivos temporales"
+LangString rm_data ${LANG_SPANISH} "Repositorio de datos"
+LangString rm_logs ${LANG_SPANISH} "Archivos de logs"
+LangString rm_conf ${LANG_SPANISH} "Archivos de configuración"
 
 # German
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_java ${LANG_GERMAN} "(DE) WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: JDK 6 oder 7 konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "EXPERIMENTELL - Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
@@ -798,7 +798,7 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
-LangString dep_explain_java ${LANG_ITALIAN} "(IT) WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare JDK 6 or 7"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "SPERIMENTALE - Configura automaticamente il database PostgreSQL:"
 

@@ -718,7 +718,6 @@ Function un.onInit
 FunctionEnd
 
 # Installer Language Strings
-# TODO Update the Language Strings with the appropriate translations.
 
 LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller ${PRODUCTNAME}"

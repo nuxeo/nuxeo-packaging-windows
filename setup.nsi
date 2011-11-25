@@ -138,6 +138,7 @@ Section -Main SEC0000
         FileWrite $2 "nuxeo.db.name=nuxeodm$\r$\n"
         FileWrite $2 "nuxeo.db.user=nuxeodm$\r$\n"
         FileWrite $2 "nuxeo.db.password=nuxeodm$\r$\n"
+        FileWrite $2 "nuxeo.wizard.skippedpages=DB$\r$\n"
     ${EndIf}
     FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
     FileClose $2

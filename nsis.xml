@@ -41,10 +41,33 @@
                    else="5.5.0.0">
             <isset property="env.package.version" />
         </condition>
-        <condition property="package.filename" value="${env.package.filename}"
-                   else="nuxeo-${distribution.version}-setup.exe">
+        <condition property="package.filename" value="${env.package.filename}">
             <isset property="env.package.filename" />
         </condition>
+        <!-- package filename -->
+        <if>
+            <not>
+                <isset property="package.filename" />
+            </not>
+            <!-- we didn't pick it up from the environment -->
+            <then>
+                <if>
+                    <contains string="${distribution.version}" substring="SNAPSHOT" />
+                    <!-- it's a snapshot -->
+                    <then>
+                        <tstamp>
+                            <format property="build.timestamp" pattern="yyyyMMdd_HHmm" />
+                        </tstamp>
+                        <property name="package.filename" value="nuxeo-${distribution.version}-${build.timestamp}-setup.exe" />
+                    </then>
+                    <!-- it's not a snapshot -->
+                    <else>
+                        <property name="package.filename" value="nuxeo-${distribution.version}-setup.exe" />
+                    </else>
+                </if>
+            </then>
+        </if>
+
         <!-- nsis settings -->
         <if>
             <os family="windows" />
@@ -83,7 +106,7 @@ VIProductVersion "${package.version}"
         <!-- prepare 3rd party libs -->
         <mkdir dir="${resources.dir}/3rdparty" />
         <unzip dest="${resources.dir}/3rdparty" overwrite="true">
-            <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:2.0:zip" />
+            <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:2.1:zip" />
         </unzip>
 
         <!-- prepare static resources -->

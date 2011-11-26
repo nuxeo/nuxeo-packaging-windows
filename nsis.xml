@@ -1,5 +1,5 @@
 <project name="nuxeo-windows-installer"
-         default="compile"
+         default="package"
          xmlns:nx="urn:nuxeo-build"
          xmlns:artifact="urn:nuxeo-artifact">
     <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
@@ -12,6 +12,11 @@
     <property name="resources.dir.os" value="${out.dir}${file.separator}resources" />
     <property name="distribution.dir" value="${out.dir}/distribution" />
     <property name="distribution.dir.os" value="${out.dir}${file.separator}distribution" />
+
+    <property name="deploy.host" value="styx.nuxeo.com" />
+    <property name="deploy.user" value="nuxeo" />
+    <property name="deploy.basedir" value="/opt/www/community.nuxeo.com/static" />
+
 
     <!-- Get variables from environment if set, use defaults otherwise -->
     <target name="init">
@@ -56,13 +61,15 @@
                     <!-- it's a snapshot -->
                     <then>
                         <tstamp>
-                            <format property="build.timestamp" pattern="yyyyMMdd_HHmm" />
+                            <format property="build.timestamp" pattern="yyyyMMdd" />
                         </tstamp>
                         <property name="package.filename" value="nuxeo-${distribution.version}-${build.timestamp}-setup.exe" />
+                        <property name="deploy.subdir" value="snapshots" />
                     </then>
                     <!-- it's not a snapshot -->
                     <else>
                         <property name="package.filename" value="nuxeo-${distribution.version}-setup.exe" />
+                        <property name="deploy.subdir" value="staging/nuxeo-${distribution.version}" />
                     </else>
                 </if>
             </then>
@@ -86,6 +93,7 @@
         </if>
     </target>
 
+
     <target name="setup" depends="init">
         <echo file="${out.dir}/setup.nsh" append="false">
 OutFile "${out.dir}${file.separator}${package.filename}"
@@ -98,7 +106,9 @@ VIProductVersion "${package.version}"
 </echo>
     </target>
 
-    <target name="compile" depends="setup">
+
+    <!-- Default target: create the .exe -->
+    <target name="package" depends="setup">
 
         <!-- copy setup.nsi -->
         <copy file="${maven.basedir}/setup.nsi" todir="${out.dir}" />
@@ -150,5 +160,37 @@ org.nuxeo.distribution.package=exe
 
     </target>
 
+    <!-- deployment target -->
+    <!-- Note: For snapshots, this will fail if package happens before
+               midnight but deploy happens after midnight.
+               This is due to the build stamp being recalculated between executions.
+    -->
+    <target name="deploy" depends="init">
+
+        <if>
+            <isset property="deploy.subdir" />
+            <then>
+                <echo message="*** Creating deployment directory on remote host ***" />
+                <exec executable="ssh"
+                      failonerror="true">
+                    <arg value="${deploy.user}@${deploy.host}" />
+                    <arg value="mkdir" />
+                    <arg value="-p" />
+                    <arg value="${deploy.basedir}/${deploy.subdir}" />
+                </exec>
+                <echo message="*** Uploading package to deployment host ***" />
+                <exec dir="${out.dir}"
+                      executable="scp"
+                      failonerror="true">
+                    <arg value="${package.filename}" />
+                    <arg value="${deploy.user}@${deploy.host}:${deploy.basedir}/${deploy.subdir}/" />
+                </exec>
+            </then>
+            <else>
+                <echo message="*** No automated deployment for custom filenames ***" />
+            </else>
+        </if>
+
+    </target>
 
 </project>

@@ -276,7 +276,7 @@ Function CheckJava
                "CurrentVersion"
         SetRegView 32
         StrCmp $2 "1.6" foundjava
-        StrCmp $2 "1.7" foundjava
+        #StrCmp $2 "1.7" foundjava
     ${EndIf}
     # 64bit arch with 32bit JDK
     ${If} ${RunningX64}
@@ -286,14 +286,14 @@ Function CheckJava
                    "CurrentVersion"
         SetRegView 32
         StrCmp $2 "1.6" foundjava
-        StrCmp $2 "1.7" foundjava
+        #StrCmp $2 "1.7" foundjava
     ${EndIf}
     # 32bit arch with 32bit JDK
     ReadRegStr $2 HKLM \
            "SOFTWARE\JavaSoft\Java Development Kit" \
            "CurrentVersion"
     StrCmp $2 "1.6" foundjava
-    StrCmp $2 "1.7" foundjava
+    #StrCmp $2 "1.7" foundjava
     # We didn't find an adequate JDK in the registry
     # Assume we're now looking for OpenJDK
     # 1) Check in PATH
@@ -322,15 +322,18 @@ Function CheckJavaExe
     Pop $1
     Pop $2
     StrCmp $1 "error" notjava
+    # Check for Java 6
     ${StrLoc} $3 "$2" "1.6.0" ">"
     StrCmp $3 "" notjava6
     Goto checkopenjdk
     notjava6:
-    ${StrLoc} $3 "$2" "1.7.0" ">"
-    StrCmp $3 "" notjava7
-    Goto checkopenjdk
-    notjava7:
-    # Check for java 8 here!
+    ## Check for Java 7
+    #${StrLoc} $3 "$2" "1.7.0" ">"
+    #StrCmp $3 "" notjava7
+    #Goto checkopenjdk
+    #notjava7:
+    ## Check for Java 8
+    # Later. Much later.
     Goto notjava
     checkopenjdk:
     ${StrLoc} $3 "$2" "OpenJDK" ">"
@@ -738,7 +741,7 @@ LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_i
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect JDK 6 or 7"
+LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect JDK 6"
 LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database:"
 
@@ -753,7 +756,7 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: JDK 6 ou 7 non détecté"
+LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: JDK 6 non détecté"
 LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "EXPÉRIMENTAL - Configurer une base PostgreSQL automatiquement:"
 
@@ -768,7 +771,7 @@ LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado JDK 6 or 7"
+LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado JDK 6"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
 LangString dep_explain_pgsql ${LANG_SPANISH}  "EXPERIMENTAL - Configurar automáticamente la base de datos PostgreSQL:"
 
@@ -783,7 +786,7 @@ LangString rm_conf ${LANG_SPANISH} "Archivos de configuración"
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: JDK 6 oder 7 konnte nicht gefunden werden"
+LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: JDK 6 konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "EXPERIMENTELL - Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
@@ -798,7 +801,7 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
-LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare JDK 6 or 7"
+LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare JDK 6"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "SPERIMENTALE - Configura automaticamente il database PostgreSQL:"
 

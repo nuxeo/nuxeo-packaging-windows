@@ -429,10 +429,10 @@ Function GetJava
     # BundleIds for Oracle Java6 JDK 6u27 : x64=52417, i586=52416
     # BundleIds for Oracle Java7 JDK 7u1 : x64=55071, i586=55070
     ${If} ${RunningX64}
-        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=52417"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55071"
         StrCpy $2 "$TEMP/jdk-x64.exe"
     ${Else}
-        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=52416"
+        StrCpy $JavaURL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=55070"
         StrCpy $2 "$TEMP/jdk-x86.exe"
     ${EndIf}
     nsisdl::download /TIMEOUT=30000 $JavaURL $2

@@ -132,7 +132,7 @@ Section -Main SEC0000
     FileWrite $2 "nuxeo.log.dir=$APPDATA\${PRODUCTNAME}\logs$\r$\n"
     FileWrite $2 "nuxeo.tmp.dir=$APPDATA\${PRODUCTNAME}\tmp$\r$\n"
     ${If} $InstallPGSQL == 1
-        FileWrite $2 "nuxeo.templates=default,postgresql$\r$\n"
+        FileWrite $2 "nuxeo.templates=postgresql$\r$\n"
         FileWrite $2 "nuxeo.db.host=localhost$\r$\n"
         FileWrite $2 "nuxeo.db.port=5432$\r$\n"
         FileWrite $2 "nuxeo.db.name=nuxeodm$\r$\n"
@@ -392,7 +392,9 @@ Function CheckPGSQL
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
-            StrCmp $2 "postgresql-8.4" foundpgsql
+            ${StrLoc} $3 "$2" "postgresql" ">"
+            StrCmp $3 "" checknext6464 foundpgsql
+            checknext6464:
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -403,7 +405,9 @@ Function CheckPGSQL
         StrCpy $1 0
         ${Do}
             EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
-            StrCmp $2 "postgresql-8.4" foundpgsql
+            ${StrLoc} $3 "$2" "postgresql" ">"
+            StrCmp $3 "" checknext6432 foundpgsql
+            checknext6432:
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
         SetRegView 32
@@ -412,7 +416,9 @@ Function CheckPGSQL
     StrCpy $1 0
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
-        StrCmp $2 "postgresql-8.4" foundpgsql
+        ${StrLoc} $3 "$2" "postgresql" ">"
+        StrCmp $3 "" checknext3232 foundpgsql
+        checknext3232:
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find PostgreSQL

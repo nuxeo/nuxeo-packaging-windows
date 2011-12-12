@@ -74,6 +74,7 @@ Var RemoveConf
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE $(license)
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
+Page custom CheckUpgradeFromNuxeo UpgradeFromNuxeo
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 Page custom SelectDependencies GetSelectedDependencies
@@ -231,6 +232,12 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
+    # Stop Nuxeo
+    ReadRegStr $2 HKLM "${REGKEY}" Path
+    StrCmp $2 "" nuxeostopped
+    ExecWait "$2\bin\nuxeoctl.bat nogui stop"
+    nuxeostopped:
+    # Remove the rest
     Delete /REBOOTOK "$DESKTOP\${PRODUCTNAME}.lnk"
     RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
@@ -470,6 +477,50 @@ Function GetPGSQL
     Quit
     ExecWait "$2 --mode unattended --unattendedmodeui minimal --installer-language en --servicepassword postgres --superpassword postgres --datadir $\"$APPDATA\${PRODUCTNAME}\pgsql$\" --create_shortcuts 1"
     Delete $2
+FunctionEnd
+
+# Upgrades
+
+Function CheckUpgradeFromNuxeo
+
+    Var /GLOBAL PerformNXUpgrade
+    StrCpy $PerformNXUpgrade 0
+    ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" UninstallString
+    IfFileExists "$2" showupgradefromnuxeo
+    Goto skipupgradefromnxueo
+    showupgradefromnuxeo:
+
+        StrCpy $PerformNXUpgrade 1
+
+        !insertmacro MUI_HEADER_TEXT $(nxupgrade_title) $(nxupgrade_subtitle)
+        nsDialogs::Create 1018
+        Pop $0
+        ${If} $0 == error
+            Abort
+        ${EndIf}
+
+        nsDialogs::CreateControl EDIT \
+            "${DEFAULT_STYLES}|${WS_VSCROLL}|${ES_MULTILINE}|${ES_WANTRETURN}|${ES_READONLY}" \
+            "${__NSD_Text_EXSTYLE}" \
+            0 0 90% 80% $(nxupgrade_explain)
+        Pop $1
+        CreateFont $4 "MS Shell Dlg" 10 700
+        SendMessage $1 ${WM_SETFONT} $4 0
+
+        nsDialogs::Show
+
+    skipupgradefromnxueo:
+
+FunctionEnd
+
+Function UpgradeFromNuxeo
+
+    ${if} $PerformNXUpgrade != 0
+        ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}" UninstallString
+        ReadRegStr $3 HKLM "${REGKEY}" Path
+        ExecWait '"$2" /S _?=$3'
+    ${EndIf}
+
 FunctionEnd
 
 # Dependencies selection
@@ -741,6 +792,10 @@ LicenseLangString license ${LANG_GERMAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_de
 LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_it"
 
 # English
+
+LangString nxupgrade_title ${LANG_ENGLISH} "An existing installation of ${PRODUCTNAME} has been detected"
+LangString nxupgrade_subtitle ${LANG_ENGLISH} "Uninstall and upgrade?"
+LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"

@@ -49,6 +49,10 @@ ${StrLoc} # Initialize function for use in install sections
 # Variables
 Var StartMenuGroup
 
+Var PerformDMUpgrade
+Var radioreplace
+Var radiokeep
+
 Var JavaExe
 Var javabox
 Var InstallJava
@@ -75,6 +79,7 @@ Var RemoveConf
 !insertmacro MUI_PAGE_LICENSE $(license)
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
 Page custom CheckUpgradeFromNuxeo UpgradeFromNuxeo
+Page custom CheckUpgradeFromDM UpgradeFromDM
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 Page custom SelectDependencies GetSelectedDependencies
@@ -119,19 +124,26 @@ Section -Main SEC0000
     File /r ${NUXEO_DISTRIBUTION_DIR}${SEP}*
     File "${NUXEO_RESOURCES_DIR}${SEP}${NUXEO_PRODUCT_ICON}"
 
+    Var /GLOBAL NXDATA
+    ${if} $PerformDMUpgrade != 0
+        StrCpy $NXDATA "Nuxeo DM"
+    ${Else}
+        StrCpy $NXDATA "${PRODUCTNAME}"
+    ${EndIf}
+
     # Delete nuxeo.conf from the main product tree
     Delete bin\nuxeo.conf
     # and add it to $APPDATA (without overwriting existing ones)
-    IfFileExists "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf" nuxeoconfdone
-    SetOutPath "$APPDATA\${PRODUCTNAME}\conf"
+    IfFileExists "$APPDATA\$NXDATA\conf\nuxeo.conf" nuxeoconfalmostdone
+    SetOutPath "$APPDATA\$NXDATA\conf"
     SetOverwrite Off # just to be safe
     File ${NUXEO_DISTRIBUTION_DIR}${SEP}bin${SEP}nuxeo.conf
-    FileOpen $2 "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf" a
+    FileOpen $2 "$APPDATA\$NXDATA\conf\nuxeo.conf" a
     FileSeek $2 0 END
     FileWrite $2 "$\r$\n"
-    FileWrite $2 "nuxeo.data.dir=$APPDATA\${PRODUCTNAME}\data$\r$\n"
-    FileWrite $2 "nuxeo.log.dir=$APPDATA\${PRODUCTNAME}\logs$\r$\n"
-    FileWrite $2 "nuxeo.tmp.dir=$APPDATA\${PRODUCTNAME}\tmp$\r$\n"
+    FileWrite $2 "nuxeo.data.dir=$APPDATA\$NXDATA\data$\r$\n"
+    FileWrite $2 "nuxeo.log.dir=$APPDATA\$NXDATA\logs$\r$\n"
+    FileWrite $2 "nuxeo.tmp.dir=$APPDATA\$NXDATA\tmp$\r$\n"
     ${If} $InstallPGSQL == 1
         FileWrite $2 "nuxeo.templates=postgresql$\r$\n"
         FileWrite $2 "nuxeo.db.host=localhost$\r$\n"
@@ -143,9 +155,32 @@ Section -Main SEC0000
     ${EndIf}
     FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
     FileClose $2
+    nuxeoconfalmostdone:
+    ${if} $PerformDMUpgrade != 0
+        # This is an upgrade from DM: reactivate wizard and skip most pages
+        FileOpen $2 "$APPDATA\$NXDATA\conf\nuxeo.conf" a
+        FileSeek $2 0 END
+        FileWrite $2 "$\r$\n"
+        FileWrite $2 "nuxeo.wizard.skippedpages=NetworkBlocked,General,Proxy,DB,Smtp$\r$\n"
+        FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
+        FileClose $2
+        SetOverwrite On
+        FileOpen $2 "$INSTDIR\setupWizardDownloads\packages-default-selection.properties" w
+        FileWrite $2 "preset=nuxeo-dm$\r$\n"
+        FileClose $2
+    ${Else}
+        # This is not an upgrade from DM. If DM exists (side by side installation), change default http port
+        ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
+        StrCmp $2 "" nuxeoconfdone
+        FileOpen $2 "$APPDATA\$NXDATA\conf\nuxeo.conf" a
+        FileSeek $2 0 END
+        FileWrite $2 "$\r$\n"
+        FileWrite $2 "nuxeo.server.http.port=8081$\r$\n"
+        FileClose $2
+    ${EndIf}
     nuxeoconfdone:
-    AccessControl::GrantOnFile "$APPDATA\${PRODUCTNAME}" "(BU)" "FullAccess"
-    WriteRegStr HKLM "${REGKEY}" ConfigFile "$APPDATA\${PRODUCTNAME}\conf\nuxeo.conf"
+    AccessControl::GrantOnFile "$APPDATA\$NXDATA" "(BU)" "FullAccess"
+    WriteRegStr HKLM "${REGKEY}" ConfigFile "$APPDATA\$NXDATA\conf\nuxeo.conf"
     SetOverwrite On
 
     # Include local 3rd parties (pdftohtml, ...)
@@ -162,9 +197,9 @@ Section -Main SEC0000
     FileClose $2
 
     # Create tmp dir
-    SetOutPath "$APPDATA\${PRODUCTNAME}\tmp"
+    SetOutPath "$APPDATA\$NXDATA\tmp"
     # Give full access to group "Builtin Users"
-    AccessControl::GrantOnFile "$APPDATA\${PRODUCTNAME}\tmp" "(BU)" "FullAccess"
+    AccessControl::GrantOnFile "$APPDATA\$NXDATA\tmp" "(BU)" "FullAccess"
 
     # PostgreSQL setup :
     ${If} $InstallPGSQL == 1
@@ -200,6 +235,9 @@ Section -Main SEC0000
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
+    WriteRegStr HKLM "${REGKEY}" VarDirectory "$APPDATA\$NXDATA"
+    # Installation done, don't ask about DM upgrade again
+    WriteRegStr HKLM "${REGKEY}" SkipDMUpgrade "true"
     SetOutPath $INSTDIR
     WriteUninstaller $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -241,19 +279,24 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK "$DESKTOP\${PRODUCTNAME}.lnk"
     RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
+    ReadRegStr $3 HKLM "${REGKEY}" VarDirectory
+    # Use default if VarDirectory isn't in the registry
+    ${If} $3 == ""
+        StrCpy $3 "$APPDATA\${PRODUCTNAME}"
+    ${EndIf}
     ${If} $RemoveTmp == 1
-        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\tmp"
+        RmDir /r /REBOOTOK "$3\tmp"
     ${EndIf}
     ${If} $RemoveData == 1
-        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\data"
+        RmDir /r /REBOOTOK "$3\data"
     ${EndIf}
     ${If} $RemoveLogs == 1
-        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\logs"
+        RmDir /r /REBOOTOK "$3\logs"
     ${EndIf}
     ${If} $RemoveConf == 1
-        RmDir /r /REBOOTOK "$APPDATA\${PRODUCTNAME}\conf"
+        RmDir /r /REBOOTOK "$3\conf"
     ${EndIf}
-    RmDir "$APPDATA\${PRODUCTNAME}"
+    RmDir "$3"
 
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTNAME}"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${PRODUCTNAME}.lnk"
@@ -262,6 +305,7 @@ Section /o -un.Main UNSEC0000
     RmDir /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup
     DeleteRegValue HKLM "${REGKEY}" Path
+    DeleteRegValue HKLM "${REGKEY}" SkipDMUpgrade
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
     DeleteRegKey /IfEmpty HKLM "${REGKEY}"
     RmDir /REBOOTOK $SMPROGRAMS\$StartMenuGroup
@@ -520,6 +564,66 @@ Function UpgradeFromNuxeo
         ReadRegStr $3 HKLM "${REGKEY}" Path
         ExecWait '"$2" /S _?=$3'
     ${EndIf}
+
+FunctionEnd
+
+Function CheckUpgradeFromDM
+
+    StrCpy $PerformDMUpgrade 0
+    ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
+    IfFileExists "$2" checkdmanswered skipupgradefromdm
+    checkdmanswered:
+    ReadRegStr $2 HKLM "${REGKEY}" SkipDMUpgrade
+    StrCmp $2 "" showupgradefromdm skipupgradefromdm
+    showupgradefromdm:
+
+        !insertmacro MUI_HEADER_TEXT $(dmupgrade_title) $(dmupgrade_subtitle)
+        nsDialogs::Create 1018
+        Pop $0
+        ${If} $0 == error
+            Abort
+        ${EndIf}
+
+        ${NSD_CreateLabel} 0 0 90% 12u $(dmupgrade_explain)
+            Pop $0
+            CreateFont $4 "MS Shell Dlg" 10 700
+            SendMessage $0 ${WM_SETFONT} $4 0
+        ${NSD_CreateRadioButton} 20u 50u 90% 12u $(dmupgrade_replace)
+            Pop $radioreplace
+        ${NSD_CreateRadioButton} 20u 70u 90% 12u $(dmupgrade_keep)
+            Pop $radiokeep
+
+        nsDialogs::Show
+
+    skipupgradefromdm:
+
+FunctionEnd
+
+Function UpgradeFromDM
+
+    ReadRegStr $2 HKLM "${REGKEY}" SkipDMUpgrade
+    StrCmp $2 "" dodmupgradecheck skipdmupgradecheck
+
+    dodmupgradecheck:
+    ${NSD_GetState} $radioreplace $1
+    ${NSD_GetState} $radiokeep $2
+    ${If} $1 == ${BST_CHECKED}
+        StrCpy $PerformDMUpgrade 1
+    ${ElseIf} $2 == ${BST_CHECKED}
+        StrCpy $PerformDMUpgrade 0
+    ${Else}
+        MessageBox MB_OK $(dmupgrade_mustselect)
+        Abort
+    ${EndIf}
+
+    ${if} $PerformDMUpgrade != 0
+        ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
+        ReadRegStr $3 HKLM "SOFTWARE\Nuxeo DM" Path
+        ExecWait "$3\bin\nuxeoctl.bat nogui stop"
+        ExecWait '"$2" /S _?=$3'
+    ${EndIf}
+
+    skipdmupgradecheck:
 
 FunctionEnd
 
@@ -796,6 +900,13 @@ LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_i
 LangString nxupgrade_title ${LANG_ENGLISH} "An existing installation of ${PRODUCTNAME} has been detected"
 LangString nxupgrade_subtitle ${LANG_ENGLISH} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+
+LangString dmupgrade_title ${LANG_ENGLISH} "An installation of Nuxeo DM has been detected"
+LangString dmupgrade_subtitle ${LANG_ENGLISH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_ENGLISH} "What do you want to do?"
+LangString dmupgrade_replace ${LANG_ENGLISH} "replace your existing Nuxeo DM with the new ${PRODUCTNAME} (BROKEN!!!)"
+LangString dmupgrade_keep ${LANG_ENGLISH} "install them side by side"
+LangString dmupgrade_mustselect ${LANG_ENGLISH} "You must select an option."
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"

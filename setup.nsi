@@ -929,17 +929,17 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 # French
 
-LangString nxupgrade_title ${LANG_FRENCH} "An existing installation of ${PRODUCTNAME} has been detected"
-LangString nxupgrade_subtitle ${LANG_FRENCH} "Uninstall and upgrade?"
-LangString nxupgrade_explain ${LANG_FRENCH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+LangString nxupgrade_title ${LANG_FRENCH} "Une installation de ${PRODUCTNAME} a été détectée"
+LangString nxupgrade_subtitle ${LANG_FRENCH} "Désinstaller et mettre à jour?"
+LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version de ${PRODUCTNAME}, l'installeur doit supprimer la précédente.$\r$\n$\r$\nCeci n'affectera pas vos données.$\r$\n$\r$\nSi vous préferez garder la version actuelle, veuillez annuler l'installation."
 
-LangString dmupgrade_title ${LANG_FRENCH} "An installation of Nuxeo DM has been detected"
-LangString dmupgrade_subtitle ${LANG_FRENCH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_FRENCH} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_FRENCH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_FRENCH} "Note: this will not work with the embedded development database"
-LangString dmupgrade_keep ${LANG_FRENCH} "Install them side by side"
-LangString dmupgrade_mustselect ${LANG_FRENCH} "You must select an option."
+LangString dmupgrade_title ${LANG_FRENCH} "Une installation de Nuxeo DM a été détectée"
+LangString dmupgrade_subtitle ${LANG_FRENCH} "Désinstaller Nuxeo DM et mettre à jour vers ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_FRENCH} "Comment voulez-vous procéder?"
+LangString dmupgrade_replace ${LANG_FRENCH} "Remplacer Nuxeo DM par ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_FRENCH} "Note: ne fonctionne pas avec la base de données de développement embarquée"
+LangString dmupgrade_keep ${LANG_FRENCH} "Les installer en parallèle"
+LangString dmupgrade_mustselect ${LANG_FRENCH} "Vous devez choisir une option."
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"

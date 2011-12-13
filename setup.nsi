@@ -176,6 +176,7 @@ Section -Main SEC0000
         FileSeek $2 0 END
         FileWrite $2 "$\r$\n"
         FileWrite $2 "nuxeo.server.http.port=8081$\r$\n"
+        FileWrite $2 "nuxeo.url=http://localhost:8081/nuxeo$\r$\rn"
         FileClose $2
     ${EndIf}
     nuxeoconfdone:
@@ -588,8 +589,10 @@ Function CheckUpgradeFromDM
             Pop $0
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
-        ${NSD_CreateRadioButton} 20u 50u 90% 12u $(dmupgrade_replace)
+        ${NSD_CreateRadioButton} 20u 40u 90% 12u $(dmupgrade_replace)
             Pop $radioreplace
+        ${NSD_CreateLabel} 25u 53u 90% 12u $(dmupgrade_warn)
+            Pop $0
         ${NSD_CreateRadioButton} 20u 70u 90% 12u $(dmupgrade_keep)
             Pop $radiokeep
 
@@ -654,6 +657,7 @@ Function SelectDependencies
     Call CheckPGSQL
     Pop $HasPGSQL
     ${If} $HasPGSQL == 0
+    ${AndIf} $PerformDMUpgrade == 0
         StrCpy $NeedDialog 1
     ${EndIf}
     
@@ -692,6 +696,7 @@ Function SelectDependencies
         ${EndIf}
         
         ${If} $HasPGSQL == 0
+        ${AndIf} $PerformDMUpgrade == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_pgsql)
             Pop $0
             IntOp $3 $3 + 13
@@ -904,15 +909,16 @@ LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${P
 LangString dmupgrade_title ${LANG_ENGLISH} "An installation of Nuxeo DM has been detected"
 LangString dmupgrade_subtitle ${LANG_ENGLISH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
 LangString dmupgrade_explain ${LANG_ENGLISH} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_ENGLISH} "replace your existing Nuxeo DM with the new ${PRODUCTNAME} (BROKEN!!!)"
-LangString dmupgrade_keep ${LANG_ENGLISH} "install them side by side"
+LangString dmupgrade_replace ${LANG_ENGLISH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_ENGLISH} "Note: this will not work with the embedded development database"
+LangString dmupgrade_keep ${LANG_ENGLISH} "Install them side by side"
 LangString dmupgrade_mustselect ${LANG_ENGLISH} "You must select an option."
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
 LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect JDK 6 or 7"
 LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
-LangString dep_explain_pgsql ${LANG_ENGLISH}  "EXPERIMENTAL - Automatically configure PostgreSQL database:"
+LangString dep_explain_pgsql ${LANG_ENGLISH}  "Automatically configure PostgreSQL database:"
 
 LangString rm_title ${LANG_ENGLISH} "Removal options"
 LangString rm_subtitle ${LANG_ENGLISH} "Do you want to remove the following?"
@@ -923,11 +929,23 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 # French
 
+LangString nxupgrade_title ${LANG_FRENCH} "An existing installation of ${PRODUCTNAME} has been detected"
+LangString nxupgrade_subtitle ${LANG_FRENCH} "Uninstall and upgrade?"
+LangString nxupgrade_explain ${LANG_FRENCH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+
+LangString dmupgrade_title ${LANG_FRENCH} "An installation of Nuxeo DM has been detected"
+LangString dmupgrade_subtitle ${LANG_FRENCH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_FRENCH} "What do you want to do?"
+LangString dmupgrade_replace ${LANG_FRENCH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_FRENCH} "Note: this will not work with the embedded development database"
+LangString dmupgrade_keep ${LANG_FRENCH} "Install them side by side"
+LangString dmupgrade_mustselect ${LANG_FRENCH} "You must select an option."
+
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
 LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: JDK 6 ou 7 non détecté"
 LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
-LangString dep_explain_pgsql ${LANG_FRENCH}  "EXPÉRIMENTAL - Configurer une base PostgreSQL automatiquement:"
+LangString dep_explain_pgsql ${LANG_FRENCH}  "Configurer une base PostgreSQL automatiquement:"
 
 LangString rm_title ${LANG_FRENCH} "Options de suppression"
 LangString rm_subtitle ${LANG_FRENCH} "Voulez-vous supprimer les éléments suivants ?"
@@ -938,11 +956,23 @@ LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 
 # Spanish
 
+LangString nxupgrade_title ${LANG_SPANISH} "An existing installation of ${PRODUCTNAME} has been detected"
+LangString nxupgrade_subtitle ${LANG_SPANISH} "Uninstall and upgrade?"
+LangString nxupgrade_explain ${LANG_SPANISH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+
+LangString dmupgrade_title ${LANG_SPANISH} "An installation of Nuxeo DM has been detected"
+LangString dmupgrade_subtitle ${LANG_SPANISH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_SPANISH} "What do you want to do?"
+LangString dmupgrade_replace ${LANG_SPANISH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_SPANISH} "Note: this will not work with the embedded development database"
+LangString dmupgrade_keep ${LANG_SPANISH} "Install them side by side"
+LangString dmupgrade_mustselect ${LANG_SPANISH} "You must select an option."
+
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
 LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado JDK 6 or 7"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
-LangString dep_explain_pgsql ${LANG_SPANISH}  "EXPERIMENTAL - Configurar automáticamente la base de datos PostgreSQL:"
+LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automáticamente la base de datos PostgreSQL:"
 
 LangString rm_title ${LANG_SPANISH} "Opciones de eliminado"
 LangString rm_subtitle ${LANG_SPANISH} "¿Desea eliminar el siguiente?"
@@ -953,11 +983,23 @@ LangString rm_conf ${LANG_SPANISH} "Archivos de configuración"
 
 # German
 
+LangString nxupgrade_title ${LANG_GERMAN} "An existing installation of ${PRODUCTNAME} has been detected"
+LangString nxupgrade_subtitle ${LANG_GERMAN} "Uninstall and upgrade?"
+LangString nxupgrade_explain ${LANG_GERMAN} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+
+LangString dmupgrade_title ${LANG_GERMAN} "An installation of Nuxeo DM has been detected"
+LangString dmupgrade_subtitle ${LANG_GERMAN} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_GERMAN} "What do you want to do?"
+LangString dmupgrade_replace ${LANG_GERMAN} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_GERMAN} "Note: this will not work with the embedded development database"
+LangString dmupgrade_keep ${LANG_GERMAN} "Install them side by side"
+LangString dmupgrade_mustselect ${LANG_GERMAN} "You must select an option."
+
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
 LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: JDK 6 oder 7 konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
-LangString dep_explain_pgsql ${LANG_GERMAN}  "EXPERIMENTELL - Sie konfigurieren automatisch PostgreSQL Datenbank:"
+LangString dep_explain_pgsql ${LANG_GERMAN}  "Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
 LangString rm_title ${LANG_GERMAN} "Demontierbare Optionen"
 LangString rm_subtitle ${LANG_GERMAN} "Wollen Sie das folgende demontieren ?"
@@ -968,11 +1010,23 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 
 # Italian
 
+LangString nxupgrade_title ${LANG_ITALIAN} "An existing installation of ${PRODUCTNAME} has been detected"
+LangString nxupgrade_subtitle ${LANG_ITALIAN} "Uninstall and upgrade?"
+LangString nxupgrade_explain ${LANG_ITALIAN} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
+
+LangString dmupgrade_title ${LANG_ITALIAN} "An installation of Nuxeo DM has been detected"
+LangString dmupgrade_subtitle ${LANG_ITALIAN} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
+LangString dmupgrade_explain ${LANG_ITALIAN} "What do you want to do?"
+LangString dmupgrade_replace ${LANG_ITALIAN} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
+LangString dmupgrade_warn ${LANG_ITALIAN} "Note: this will not work with the embedded development database"
+LangString dmupgrade_keep ${LANG_ITALIAN} "Install them side by side"
+LangString dmupgrade_mustselect ${LANG_ITALIAN} "You must select an option."
+
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
 LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare JDK 6 or 7"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
-LangString dep_explain_pgsql ${LANG_ITALIAN}  "SPERIMENTALE - Configura automaticamente il database PostgreSQL:"
+LangString dep_explain_pgsql ${LANG_ITALIAN}  "Configura automaticamente il database PostgreSQL:"
 
 LangString rm_title ${LANG_ITALIAN} "Opzioni di rimozione"
 LangString rm_subtitle ${LANG_ITALIAN} "Vuoi rimuovere il seguente?"

@@ -144,6 +144,7 @@ Section -Main SEC0000
     FileWrite $2 "nuxeo.data.dir=$APPDATA\$NXDATA\data$\r$\n"
     FileWrite $2 "nuxeo.log.dir=$APPDATA\$NXDATA\logs$\r$\n"
     FileWrite $2 "nuxeo.tmp.dir=$APPDATA\$NXDATA\tmp$\r$\n"
+    FileWrite $2 "nuxeo.wizard.skippedsections=Paths$\r$\n"
     ${If} $InstallPGSQL == 1
         FileWrite $2 "nuxeo.templates=postgresql$\r$\n"
         FileWrite $2 "nuxeo.db.host=localhost$\r$\n"

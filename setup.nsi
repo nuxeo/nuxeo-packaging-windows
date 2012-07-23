@@ -505,7 +505,7 @@ FunctionEnd
 
 Function GetOffice
     StrCpy $2 "$TEMP/Office.exe"
-    nsisdl::download /TIMEOUT=30000 "http://download.documentfoundation.org/libreoffice/stable/3.4.4/win/x86/LibO_3.4.4_Win_x86_install_multi.exe" $2
+    nsisdl::download /TIMEOUT=30000 "http://downloadarchive.documentfoundation.org/libreoffice/old/3.5.2.2/win/x86/LibO_3.5.2rc2_Win_x86_install_multi.msi" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "LibreOffice download failed: $R0"
@@ -636,7 +636,7 @@ FunctionEnd
 Function SelectDependencies
     Var /GLOBAL NeedDialog
     StrCpy $NeedDialog 0
-    
+
     Var /GLOBAL HasJava
     StrCpy $javabox 0
     Call CheckJava
@@ -661,10 +661,10 @@ Function SelectDependencies
     ${AndIf} $PerformDMUpgrade == 0
         StrCpy $NeedDialog 1
     ${EndIf}
-    
+
     # Some dependencies are not installed - we have stuff to do
     ${If} $NeedDialog == 1
-    
+
         !insertmacro MUI_HEADER_TEXT $(dep_title) $(dep_subtitle)
         nsDialogs::Create 1018
         Pop $0
@@ -673,7 +673,7 @@ Function SelectDependencies
         ${EndIf}
 
         StrCpy $3 0
-        
+
         ${If} $HasJava == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_java)
             Pop $0
@@ -695,7 +695,7 @@ Function SelectDependencies
             IntOp $3 $3 + 26
             ${NSD_Check} $officebox
         ${EndIf}
-        
+
         ${If} $HasPGSQL == 0
         ${AndIf} $PerformDMUpgrade == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_pgsql)
@@ -706,11 +706,11 @@ Function SelectDependencies
             IntOp $3 $3 + 26
             #${NSD_Check} $pgsqlbox
         ${EndIf}
-        
+
         nsDialogs::Show
-    
+
     ${EndIf}
-    
+
 FunctionEnd
 
 Function GetSelectedDependencies

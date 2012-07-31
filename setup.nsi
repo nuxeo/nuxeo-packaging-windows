@@ -502,13 +502,17 @@ Function GetJava
 FunctionEnd
 
 Function GetOffice
-    StrCpy $2 "$TEMP/Office.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO.exe" $2
+    StrCpy $2 "$TEMP\Office.msi"
+    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO.msi" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "LibreOffice download failed: $R0"
     Quit
-    ExecWait "$2 /S /GUILEVEL=qr"
+    FileOpen $3 "$TEMP\msiwait.bat" "w"
+    FileWrite $3 "start /wait msiexec /i $2 /passive"
+    FileClose $3
+    ExecWait "$TEMP\msiwait.bat"
+    Delete "$TEMP\msiwait.bat"
     Delete $2
 FunctionEnd
 
@@ -678,7 +682,7 @@ Function SelectDependencies
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 6 Development Kit"
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 7 Development Kit"
             Pop $javabox
             IntOp $3 $3 + 26
             ${NSD_Check} $javabox

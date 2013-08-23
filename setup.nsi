@@ -1,3 +1,5 @@
+RequestExecutionLevel admin
+
 !include setup.nsh
 
 Name "${PRODUCTNAME}"
@@ -6,16 +8,6 @@ Name "${PRODUCTNAME}"
 !define REGKEY "SOFTWARE\${PRODUCTNAME}"
 !define COMPANY Nuxeo
 !define URL http://www.nuxeo.com/
-
-# MultiUser Symbol Definitions
-!define MULTIUSER_EXECUTIONLEVEL Admin
-!define MULTIUSER_MUI
-!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${REGKEY}"
-!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME MultiUserInstallMode
-!define MULTIUSER_INSTALLMODE_COMMANDLINE
-!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCTNAME}"
-!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${REGKEY}"
-!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUE "Path"
 
 # MUI Symbol Definitions
 !define MUI_ICON "${NUXEO_RESOURCES_DIR}${SEP}install.ico"
@@ -36,7 +28,6 @@ Name "${PRODUCTNAME}"
 
 # Included files
 !include x64.nsh
-!include MultiUser.nsh
 !include Sections.nsh
 !include MUI2.nsh
 !include "StrFunc.nsh"
@@ -77,7 +68,6 @@ Var RemoveConf
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE $(license)
-!insertmacro MULTIUSER_PAGE_INSTALLMODE
 Page custom CheckUpgradeFromNuxeo UpgradeFromNuxeo
 Page custom CheckUpgradeFromDM UpgradeFromDM
 !insertmacro MUI_PAGE_DIRECTORY
@@ -97,7 +87,7 @@ UninstPage custom un.SelectRemove un.GetSelectedRemove
 !insertmacro MUI_LANGUAGE Italian
 
 # Installer attributes
-InstallDir "${PRODUCTNAME}"
+InstallDir "C:\${PRODUCTNAME}"
 CRCCheck on
 XPStyle on
 ShowInstDetails show
@@ -114,6 +104,8 @@ ShowUninstDetails show
 # Installer sections
 
 Section -Main SEC0000
+
+    SetShellVarContext all
 
     Call InstallDependencies
 
@@ -213,23 +205,21 @@ Section -Main SEC0000
         SetOutPath $APPDATA\${PRODUCTNAME}\pgsql
         File ${NUXEO_RESOURCES_DIR}${SEP}contrib${SEP}postgresql.conf
         # create pgpass file (in the "current user" context)
-        ${If} $MultiUser.InstallMode == AllUsers
-            SetShellVarContext current
-        ${EndIf}
+        SetShellVarContext current
         SetOutPath $APPDATA\postgresql
         FileOpen $2 "$APPDATA\postgresql\pgpass.conf" a
         FileSeek $2 0 END
         FileWrite $2 "$\r$\n"
         FileWrite $2 "localhost:5432:template1:$PGUser:postgres"
         FileClose $2
-        ${If} $MultiUser.InstallMode == AllUsers
-            SetShellVarContext all
-        ${EndIf}
+        SetShellVarContext all
         # start postgresql
         ExecWait "sc start postgresql-9.2"
         Sleep 5000 # Hope the service will be started after 5 seconds
         # run db creation script
+        SetShellVarContext current
         ExecWait "$PGPath\bin\psql.exe -h localhost -U $PGUser -f $\"$INSTDIR\contrib\create_db.sql$\" template1"
+        SetShellVarContext all
     ${EndIf}
 
     SetOutPath $INSTDIR\bin
@@ -272,6 +262,7 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
+    SetShellVarContext all
     # Stop Nuxeo
     ReadRegStr $2 HKLM "${REGKEY}" Path
     StrCmp $2 "" nuxeostopped
@@ -843,9 +834,17 @@ FunctionEnd
 # Installer functions
 
 Function .onInit
+    # Verify admin rights
+    UserInfo::GetAccountType
+    pop $0
+    ${If} $0 != "admin"
+        MessageBox mb_iconstop "Administrator rights required!"
+        SetErrorLevel 740
+        Quit
+    ${EndIf}
+    # Continue as admin
     InitPluginsDir
     !insertmacro MUI_LANGDLL_DISPLAY
-    !insertmacro MULTIUSER_INIT
 FunctionEnd
 
 # Uninstall options selection
@@ -918,7 +917,6 @@ FunctionEnd
 Function un.onInit
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
     !insertmacro MUI_UNGETLANGUAGE
-    !insertmacro MULTIUSER_UNINIT
     !insertmacro SELECT_UNSECTION Main ${UNSEC0000}
 FunctionEnd
 

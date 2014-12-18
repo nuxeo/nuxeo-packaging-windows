@@ -13,9 +13,9 @@
     <property name="distribution.dir" value="${out.dir}/distribution" />
     <property name="distribution.dir.os" value="${out.dir}${file.separator}distribution" />
 
-    <property name="deploy.host" value="styx.nuxeo.com" />
+    <property name="deploy.host" value="lethe.nuxeo.com" />
     <property name="deploy.user" value="nuxeo" />
-    <property name="deploy.basedir" value="/opt/www/community.nuxeo.com/static" />
+    <property name="deploy.basedir" value="/var/www/community.nuxeo.com/static" />
 
 
     <!-- Get variables from environment if set, use defaults otherwise -->

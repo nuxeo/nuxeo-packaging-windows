@@ -267,7 +267,7 @@ Section /o -un.Main UNSEC0000
     # Stop Nuxeo
     ReadRegStr $2 HKLM "${REGKEY}" Path
     StrCmp $2 "" nuxeostopped
-    ExecWait "$2\bin\nuxeoctl.bat nogui stop"
+    ExecWait "$2\bin\nuxeoctl.bat --gui=false stop"
     nuxeostopped:
     # Remove the rest
     Delete /REBOOTOK "$DESKTOP\${PRODUCTNAME}.lnk"
@@ -610,7 +610,7 @@ Function UpgradeFromDM
     ${if} $PerformDMUpgrade != 0
         ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
         ReadRegStr $3 HKLM "SOFTWARE\Nuxeo DM" Path
-        ExecWait "$3\bin\nuxeoctl.bat nogui stop"
+        ExecWait "$3\bin\nuxeoctl.bat --gui=false stop"
         ExecWait '"$2" /S _?=$3'
     ${EndIf}
 

@@ -200,7 +200,7 @@ Section -Main SEC0000
     ${If} $InstallPGSQL == 1
         Call GetPGSQLSettings
         # stop postgresql
-        ExecWait "sc stop postgresql-9.2"
+        ExecWait "sc stop postgresql-9.4"
         Sleep 5000 # Hope the service will be stopped after 5 seconds
         # overwrite postgresql.conf with ours
         SetOutPath $APPDATA\${PRODUCTNAME}\pgsql
@@ -215,7 +215,7 @@ Section -Main SEC0000
         FileClose $2
         SetShellVarContext all
         # start postgresql
-        ExecWait "sc start postgresql-9.2"
+        ExecWait "sc start postgresql-9.4"
         Sleep 5000 # Hope the service will be started after 5 seconds
         # run db creation script
         SetShellVarContext current
@@ -320,7 +320,7 @@ Function CheckJava
                "SOFTWARE\JavaSoft\Java Runtime Environment" \
                "CurrentVersion"
         SetRegView 32
-        StrCmp $2 "1.7" foundjava
+        StrCmp $2 "1.8" foundjava
     ${EndIf}
     # 64bit arch with 32bit JDK
     ${If} ${RunningX64}
@@ -329,13 +329,13 @@ Function CheckJava
                    "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" \
                    "CurrentVersion"
         SetRegView 32
-        StrCmp $2 "1.7" foundjava
+        StrCmp $2 "1.8" foundjava
     ${EndIf}
     # 32bit arch with 32bit JDK
     ReadRegStr $2 HKLM \
            "SOFTWARE\JavaSoft\Java Runtime Environment" \
            "CurrentVersion"
-    StrCmp $2 "1.7" foundjava
+    StrCmp $2 "1.8" foundjava
     # We didn't find an adequate JDK in the registry
     # Assume we're now looking for OpenJDK
     # 1) Check in PATH
@@ -364,16 +364,8 @@ Function CheckJavaExe
     Pop $1
     Pop $2
     StrCmp $1 "error" notjava
-    ${StrLoc} $3 "$2" "1.7.0" ">"
-    StrCmp $3 "" notjava7
-    Goto checkopenjdk
-    notjava7:
-    # Check for java 8 here!
-    Goto notjava
-    checkopenjdk:
-    ${StrLoc} $3 "$2" "OpenJDK" ">"
+    ${StrLoc} $3 "$2" "1.8.0" ">"
     StrCmp $3 "" notjava
-    # Looks like we found our matching OpenJDK!
     Push 1
     Goto done
     notjava:
@@ -471,10 +463,10 @@ FunctionEnd
 Function GetJava
     Var /GLOBAL JavaURL
     ${If} ${RunningX64}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre_x64.exe"
+        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre8_x64.exe"
         StrCpy $2 "$TEMP/jre-x64.exe"
     ${Else}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre_x86.exe"
+        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre8_x86.exe"
         StrCpy $2 "$TEMP/jre-x86.exe"
     ${EndIf}
     nsisdl::download /TIMEOUT=30000 $JavaURL $2
@@ -502,8 +494,8 @@ Function GetOffice
 FunctionEnd
 
 Function GetPGSQL
-    StrCpy $2 "$TEMP/postgresql-9.2.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/postgresql/postgresql-9.2.exe" $2
+    StrCpy $2 "$TEMP/postgresql-9.4.exe"
+    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/postgresql/postgresql-9.4.exe" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "PostgreSQL download failed: $R0"
@@ -667,7 +659,7 @@ Function SelectDependencies
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 7 Runtime Environment"
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 8 Runtime Environment"
             Pop $javabox
             IntOp $3 $3 + 13
             ${NSD_CreateLink} 0 $3u 90% 12u "Oracle Java EULA"
@@ -783,6 +775,20 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.2" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.3"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.3" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.4"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.4" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 64bit arch with 32bit PostgreSQL
@@ -809,6 +815,20 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.2" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\Wow6432Node\PostgreSQL\Installations\postgresql-9.3"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.3" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\Wow6432Node\PostgreSQL\Installations\postgresql-9.4"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.4" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 32bit arch with 32bit PostgreSQL
@@ -831,6 +851,20 @@ Function GetPGSQLSettings
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
         StrCmp $2 "postgresql-9.2" foundpgsql
+        IntOp $1 $1 + 1
+    ${LoopWhile} $2 != ""
+    StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.3"
+    StrCpy $1 0
+    ${Do}
+        EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+        StrCmp $2 "postgresql-9.3" foundpgsql
+        IntOp $1 $1 + 1
+    ${LoopWhile} $2 != ""
+    StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.4"
+    StrCpy $1 0
+    ${Do}
+        EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+        StrCmp $2 "postgresql-9.4" foundpgsql
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find PostgreSQL
@@ -964,7 +998,7 @@ LangString dmupgrade_mustselect ${LANG_ENGLISH} "You must select an option."
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect JDK 7"
+LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect Java 8"
 LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "Automatically configure PostgreSQL database:"
 
@@ -991,7 +1025,7 @@ LangString dmupgrade_mustselect ${LANG_FRENCH} "Vous devez choisir une option."
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: JDK 7 non détecté"
+LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: Java 8 non détecté"
 LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "Configurer une base PostgreSQL automatiquement:"
 
@@ -1018,7 +1052,7 @@ LangString dmupgrade_mustselect ${LANG_SPANISH} "You must select an option."
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado JDK 7"
+LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado Java 8"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
 LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automáticamente la base de datos PostgreSQL:"
 
@@ -1045,7 +1079,7 @@ LangString dmupgrade_mustselect ${LANG_GERMAN} "You must select an option."
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: JDK 7 konnte nicht gefunden werden"
+LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: Java 8 konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
@@ -1072,7 +1106,7 @@ LangString dmupgrade_mustselect ${LANG_ITALIAN} "You must select an option."
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
-LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare JDK 7"
+LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare Java 8"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "Configura automaticamente il database PostgreSQL:"
 

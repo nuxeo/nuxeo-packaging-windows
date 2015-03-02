@@ -4,27 +4,48 @@
 
 - Create a directory for nsis (/usr/local/nsis)
 - Download and uncompress nsis-2.46.zip and nsis-2.46-src.tar.bz2 from http://nsis.sourceforge.net/ in that directory
+-- http://sourceforge.net/projects/nsis/files/NSIS%202/2.46/nsis-2.46.zip/download
+-- http://sourceforge.net/projects/nsis/files/NSIS%202/2.46/nsis-2.46-src.tar.bz2/download
 
 2) Add the plugin we use for the installer builds
 
 - Download the Access Control plugin (http://nsis.sourceforge.net/AccessControl_plug-in)
-- Put the plugin DLLs in the nsis Plugin directory
+- Copy AccessControl/Plugins/AccessControl.dll in /usr/local/nsis/nsis-2.46/Plugins/
 
 3) Install build tools
 
 - Install the "scons" package from your debian/ubuntu/whatever repository
 - For 64bit build environments, install libc6-dev-i386 and g++-multilib
+-- apt-get install scons libc6-dev-i386 g++-multilib
 
 4) Compile the binary
+
+See http://stackoverflow.com/questions/20120110/install-nsis-on-linux-fails-exitcode1 for recent distributions:
+<< add #include <unistd.h> to util.h >>
 
 In /usr/local/nsis/nsis-2.46-src, run:
 scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all NSIS_CONFIG_CONST_DATA_PATH=no NSIS_MAX_STRLEN=8192 PREFIX=/usr/local/nsis/nsis-2.46 install-compiler
 
--> This will create a makensis binary (large strings build variant) in /usr/local/nsis/nsis-2.46
+-> This will create a makensis binary (large strings build variant): /usr/local/nsis/nsis-2.46/bin/makensis
 
+New distributions: after compile, ln -s /usr/local/nsis/nsis-2.46/bin/makensis /usr/local/nsis/nsis-2.46/makensis
 
 *** NSIS "large strings build" download for Windows:
 
 Follow the link on this page: http://nsis.sourceforge.net/Special_Builds
 (this is in addition to the regular NSIS download, not a standalone version)
+
+5) Build
+
+mvn clean package
+
+6) Release
+
+mvn clean package -Ddistribution.version=x.y.z -Ddistribution.classifier=nuxeo-cap-full -Dpackage.version=x.y.z.0
+
+7) Release + upload
+
+mvn clean deploy ...
+
+
 

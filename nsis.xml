@@ -46,7 +46,7 @@
             <isset property="env.package.name" />
         </condition>
         <condition property="package.version" value="${env.package.version}"
-                   else="7.1.0.0">
+                   else="7.2.0.0">
             <isset property="env.package.version" />
         </condition>
         <condition property="package.filename" value="${env.package.filename}">

@@ -976,11 +976,11 @@ LangString ^UninstallLink ${LANG_ITALIAN} "Rimuovere ${PRODUCTNAME}"
 
 # Other localizations
 
-LicenseLangString license ${LANG_ENGLISH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_en"
-LicenseLangString license ${LANG_FRENCH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_fr"
-LicenseLangString license ${LANG_SPANISH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_es"
-LicenseLangString license ${LANG_GERMAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_de"
-LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE_it"
+LicenseLangString license ${LANG_ENGLISH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE"
+LicenseLangString license ${LANG_FRENCH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE"
+LicenseLangString license ${LANG_SPANISH} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE"
+LicenseLangString license ${LANG_GERMAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE"
+LicenseLangString license ${LANG_ITALIAN} "${NUXEO_RESOURCES_DIR}${SEP}LICENSE"
 
 # English
 

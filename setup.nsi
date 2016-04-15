@@ -40,7 +40,6 @@ ${StrLoc} # Initialize function for use in install sections
 # Variables
 Var StartMenuGroup
 
-Var PerformDMUpgrade
 Var radioreplace
 Var radiokeep
 
@@ -70,7 +69,6 @@ Var RemoveConf
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE $(license)
 Page custom CheckUpgradeFromNuxeo UpgradeFromNuxeo
-Page custom CheckUpgradeFromDM UpgradeFromDM
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 Page custom SelectDependencies GetSelectedDependencies
@@ -118,16 +116,12 @@ Section -Main SEC0000
     File "${NUXEO_RESOURCES_DIR}${SEP}${NUXEO_PRODUCT_ICON}"
 
     Var /GLOBAL NXDATA
-    ${if} $PerformDMUpgrade != 0
-        StrCpy $NXDATA "Nuxeo DM"
-    ${Else}
-        StrCpy $NXDATA "${PRODUCTNAME}"
-    ${EndIf}
+    StrCpy $NXDATA "${PRODUCTNAME}"
 
     # Delete nuxeo.conf from the main product tree
     Delete bin\nuxeo.conf
     # and add it to $APPDATA (without overwriting existing ones)
-    IfFileExists "$APPDATA\$NXDATA\conf\nuxeo.conf" nuxeoconfalmostdone
+    IfFileExists "$APPDATA\$NXDATA\conf\nuxeo.conf" nuxeoconfdone
     SetOutPath "$APPDATA\$NXDATA\conf"
     SetOverwrite Off # just to be safe
     File ${NUXEO_DISTRIBUTION_DIR}${SEP}bin${SEP}nuxeo.conf
@@ -149,30 +143,6 @@ Section -Main SEC0000
     ${EndIf}
     FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
     FileClose $2
-    nuxeoconfalmostdone:
-    ${if} $PerformDMUpgrade != 0
-        # This is an upgrade from DM: reactivate wizard and skip most pages
-        FileOpen $2 "$APPDATA\$NXDATA\conf\nuxeo.conf" a
-        FileSeek $2 0 END
-        FileWrite $2 "$\r$\n"
-        FileWrite $2 "nuxeo.wizard.skippedpages=NetworkBlocked,General,Proxy,DB,Smtp$\r$\n"
-        FileWrite $2 "nuxeo.wizard.done=false$\r$\n"
-        FileClose $2
-        SetOverwrite On
-        FileOpen $2 "$INSTDIR\setupWizardDownloads\packages-default-selection.properties" w
-        FileWrite $2 "preset=nuxeo-dm$\r$\n"
-        FileClose $2
-    ${Else}
-        # This is not an upgrade from DM. If DM exists (side by side installation), change default http port
-        ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
-        StrCmp $2 "" nuxeoconfdone
-        FileOpen $2 "$APPDATA\$NXDATA\conf\nuxeo.conf" a
-        FileSeek $2 0 END
-        FileWrite $2 "$\r$\n"
-        FileWrite $2 "nuxeo.server.http.port=8081$\r$\n"
-        FileWrite $2 "nuxeo.url=http://localhost:8081/nuxeo$\r$\rn"
-        FileClose $2
-    ${EndIf}
     nuxeoconfdone:
     AccessControl::GrantOnFile "$APPDATA\$NXDATA" "(BU)" "FullAccess"
     WriteRegStr HKLM "${REGKEY}" ConfigFile "$APPDATA\$NXDATA\conf\nuxeo.conf"
@@ -229,8 +199,6 @@ Section -Main SEC0000
 
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     WriteRegStr HKLM "${REGKEY}" VarDirectory "$APPDATA\$NXDATA"
-    # Installation done, don't ask about DM upgrade again
-    WriteRegStr HKLM "${REGKEY}" SkipDMUpgrade "true"
     SetOutPath $INSTDIR
     WriteUninstaller $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -299,7 +267,6 @@ Section /o -un.Main UNSEC0000
     RmDir /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup
     DeleteRegValue HKLM "${REGKEY}" Path
-    DeleteRegValue HKLM "${REGKEY}" SkipDMUpgrade
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
     DeleteRegKey /IfEmpty HKLM "${REGKEY}"
     RmDir /REBOOTOK $SMPROGRAMS\$StartMenuGroup
@@ -548,70 +515,6 @@ Function UpgradeFromNuxeo
 
 FunctionEnd
 
-Function CheckUpgradeFromDM
-
-    StrCpy $PerformDMUpgrade 0
-    ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
-    IfFileExists "$2" checkdmanswered skipupgradefromdm
-    checkdmanswered:
-    ReadRegStr $2 HKLM "${REGKEY}" SkipDMUpgrade
-    StrCmp $2 "" showupgradefromdm skipupgradefromdm
-    showupgradefromdm:
-
-        !insertmacro MUI_HEADER_TEXT $(dmupgrade_title) $(dmupgrade_subtitle)
-        nsDialogs::Create 1018
-        Pop $0
-        ${If} $0 == error
-            Abort
-        ${EndIf}
-
-        ${NSD_CreateLabel} 0 0 90% 12u $(dmupgrade_explain)
-            Pop $0
-            CreateFont $4 "MS Shell Dlg" 10 700
-            SendMessage $0 ${WM_SETFONT} $4 0
-        ${NSD_CreateRadioButton} 20u 40u 90% 12u $(dmupgrade_replace)
-            Pop $radioreplace
-        ${NSD_CreateLabel} 25u 53u 90% 12u $(dmupgrade_warn)
-            Pop $0
-        ${NSD_CreateRadioButton} 20u 70u 90% 12u $(dmupgrade_keep)
-            Pop $radiokeep
-
-        nsDialogs::Show
-
-    skipupgradefromdm:
-
-FunctionEnd
-
-Function UpgradeFromDM
-
-    ReadRegStr $2 HKLM "${REGKEY}" SkipDMUpgrade
-    StrCmp $2 "" dodmupgradecheck skipdmupgradecheck
-
-    dodmupgradecheck:
-    ${NSD_GetState} $radioreplace $1
-    ${NSD_GetState} $radiokeep $2
-    ${If} $1 == ${BST_CHECKED}
-        StrCpy $PerformDMUpgrade 1
-    ${ElseIf} $2 == ${BST_CHECKED}
-        StrCpy $PerformDMUpgrade 0
-    ${Else}
-        MessageBox MB_OK $(dmupgrade_mustselect)
-        Abort
-    ${EndIf}
-
-    ${if} $PerformDMUpgrade != 0
-        ReadRegStr $2 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Nuxeo DM" UninstallString
-        ReadRegStr $3 HKLM "SOFTWARE\Nuxeo DM" Path
-        ExecWait "$3\bin\nuxeoctl.bat --gui=false stop"
-        ExecWait '"$2" /S _?=$3'
-    ${EndIf}
-
-    skipdmupgradecheck:
-
-FunctionEnd
-
-# Dependencies selection
-
 Function SelectDependencies
     Var /GLOBAL NeedDialog
     StrCpy $NeedDialog 0
@@ -637,7 +540,6 @@ Function SelectDependencies
     Call CheckPGSQL
     Pop $HasPGSQL
     ${If} $HasPGSQL == 0
-    ${AndIf} $PerformDMUpgrade == 0
         StrCpy $NeedDialog 1
     ${EndIf}
 
@@ -680,7 +582,6 @@ Function SelectDependencies
         ${EndIf}
 
         ${If} $HasPGSQL == 0
-        ${AndIf} $PerformDMUpgrade == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_pgsql)
             Pop $0
             IntOp $3 $3 + 13
@@ -988,14 +889,6 @@ LangString nxupgrade_title ${LANG_ENGLISH} "An existing installation of ${PRODUC
 LangString nxupgrade_subtitle ${LANG_ENGLISH} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
 
-LangString dmupgrade_title ${LANG_ENGLISH} "An installation of Nuxeo DM has been detected"
-LangString dmupgrade_subtitle ${LANG_ENGLISH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_ENGLISH} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_ENGLISH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_ENGLISH} "Note: this will not work with the embedded development database"
-LangString dmupgrade_keep ${LANG_ENGLISH} "Install them side by side"
-LangString dmupgrade_mustselect ${LANG_ENGLISH} "You must select an option."
-
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
 LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect Java 8"
@@ -1014,14 +907,6 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 LangString nxupgrade_title ${LANG_FRENCH} "Une installation de ${PRODUCTNAME} a été détectée"
 LangString nxupgrade_subtitle ${LANG_FRENCH} "Désinstaller et mettre à jour?"
 LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version de ${PRODUCTNAME}, l'installeur doit supprimer la précédente.$\r$\n$\r$\nCeci n'affectera pas vos données.$\r$\n$\r$\nSi vous préferez garder la version actuelle, veuillez annuler l'installation."
-
-LangString dmupgrade_title ${LANG_FRENCH} "Une installation de Nuxeo DM a été détectée"
-LangString dmupgrade_subtitle ${LANG_FRENCH} "Désinstaller Nuxeo DM et mettre à jour vers ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_FRENCH} "Comment voulez-vous procéder?"
-LangString dmupgrade_replace ${LANG_FRENCH} "Remplacer Nuxeo DM par ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_FRENCH} "Note: ne fonctionne pas avec la base de données de développement embarquée"
-LangString dmupgrade_keep ${LANG_FRENCH} "Les installer en parallèle"
-LangString dmupgrade_mustselect ${LANG_FRENCH} "Vous devez choisir une option."
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
@@ -1042,14 +927,6 @@ LangString nxupgrade_title ${LANG_SPANISH} "An existing installation of ${PRODUC
 LangString nxupgrade_subtitle ${LANG_SPANISH} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_SPANISH} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
 
-LangString dmupgrade_title ${LANG_SPANISH} "An installation of Nuxeo DM has been detected"
-LangString dmupgrade_subtitle ${LANG_SPANISH} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_SPANISH} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_SPANISH} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_SPANISH} "Note: this will not work with the embedded development database"
-LangString dmupgrade_keep ${LANG_SPANISH} "Install them side by side"
-LangString dmupgrade_mustselect ${LANG_SPANISH} "You must select an option."
-
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
 LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado Java 8"
@@ -1069,14 +946,6 @@ LangString nxupgrade_title ${LANG_GERMAN} "An existing installation of ${PRODUCT
 LangString nxupgrade_subtitle ${LANG_GERMAN} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_GERMAN} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
 
-LangString dmupgrade_title ${LANG_GERMAN} "An installation of Nuxeo DM has been detected"
-LangString dmupgrade_subtitle ${LANG_GERMAN} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_GERMAN} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_GERMAN} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_GERMAN} "Note: this will not work with the embedded development database"
-LangString dmupgrade_keep ${LANG_GERMAN} "Install them side by side"
-LangString dmupgrade_mustselect ${LANG_GERMAN} "You must select an option."
-
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
 LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: Java 8 konnte nicht gefunden werden"
@@ -1095,14 +964,6 @@ LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
 LangString nxupgrade_title ${LANG_ITALIAN} "An existing installation of ${PRODUCTNAME} has been detected"
 LangString nxupgrade_subtitle ${LANG_ITALIAN} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_ITALIAN} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
-
-LangString dmupgrade_title ${LANG_ITALIAN} "An installation of Nuxeo DM has been detected"
-LangString dmupgrade_subtitle ${LANG_ITALIAN} "Uninstall Nuxeo DM and upgrade to ${PRODUCTNAME}?"
-LangString dmupgrade_explain ${LANG_ITALIAN} "What do you want to do?"
-LangString dmupgrade_replace ${LANG_ITALIAN} "Replace your existing Nuxeo DM with the new ${PRODUCTNAME}"
-LangString dmupgrade_warn ${LANG_ITALIAN} "Note: this will not work with the embedded development database"
-LangString dmupgrade_keep ${LANG_ITALIAN} "Install them side by side"
-LangString dmupgrade_mustselect ${LANG_ITALIAN} "You must select an option."
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"

@@ -891,7 +891,7 @@ LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${P
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect Java 8"
+LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect Java 8 JDK"
 LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "Automatically configure PostgreSQL database:"
 
@@ -910,7 +910,7 @@ LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version 
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: Java 8 non détecté"
+LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: Java 8 JDK non détecté"
 LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "Configurer une base PostgreSQL automatiquement:"
 
@@ -929,7 +929,7 @@ LangString nxupgrade_explain ${LANG_SPANISH} "To install your new version of ${P
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado Java 8"
+LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado Java 8 JDK"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
 LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automáticamente la base de datos PostgreSQL:"
 
@@ -948,7 +948,7 @@ LangString nxupgrade_explain ${LANG_GERMAN} "To install your new version of ${PR
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: Java 8 konnte nicht gefunden werden"
+LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: Java 8 JDK konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
@@ -967,7 +967,7 @@ LangString nxupgrade_explain ${LANG_ITALIAN} "To install your new version of ${P
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
-LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare Java 8"
+LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare Java 8 JDK"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "Configura automaticamente il database PostgreSQL:"
 

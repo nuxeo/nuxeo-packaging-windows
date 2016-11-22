@@ -284,7 +284,7 @@ Function CheckJava
     ${If} ${RunningX64}
         SetRegView 64
         ReadRegStr $2 HKLM \
-               "SOFTWARE\JavaSoft\Java Runtime Environment" \
+               "SOFTWARE\JavaSoft\Java Development Kit" \
                "CurrentVersion"
         SetRegView 32
         StrCmp $2 "1.8" foundjava
@@ -293,14 +293,14 @@ Function CheckJava
     ${If} ${RunningX64}
         SetRegView 64
         ReadRegStr $2 HKLM \
-                   "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" \
+                   "SOFTWARE\Wow6432Node\JavaSoft\Java Development Kit" \
                    "CurrentVersion"
         SetRegView 32
         StrCmp $2 "1.8" foundjava
     ${EndIf}
     # 32bit arch with 32bit JDK
     ReadRegStr $2 HKLM \
-           "SOFTWARE\JavaSoft\Java Runtime Environment" \
+           "SOFTWARE\JavaSoft\Java Development Kit" \
            "CurrentVersion"
     StrCmp $2 "1.8" foundjava
     # We didn't find an adequate JDK in the registry
@@ -430,24 +430,24 @@ FunctionEnd
 Function GetJava
     Var /GLOBAL JavaURL
     ${If} ${RunningX64}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre8_x64.exe"
-        StrCpy $2 "$TEMP/jre-x64.exe"
+        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk8_x64.exe"
+        StrCpy $2 "$TEMP/jdk-x64.exe"
     ${Else}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jre8_x86.exe"
-        StrCpy $2 "$TEMP/jre-x86.exe"
+        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk8_x86.exe"
+        StrCpy $2 "$TEMP/jdk-x86.exe"
     ${EndIf}
     nsisdl::download /TIMEOUT=30000 $JavaURL $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "Java download failed: $R0"
     Quit
-    ExecWait "$2 /s"
+    ExecWait "$2 /qr ADDLOCAL=ToolsFeature"
     Delete $2
 FunctionEnd
 
 Function GetOffice
     StrCpy $2 "$TEMP\LibreOffice.msi"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO4.msi" $2
+    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO5.msi" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "LibreOffice download failed: $R0"
@@ -561,7 +561,7 @@ Function SelectDependencies
             CreateFont $4 "MS Shell Dlg" 10 700
             SendMessage $0 ${WM_SETFONT} $4 0
             IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 8 Runtime Environment"
+            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 8 Development Kit"
             Pop $javabox
             IntOp $3 $3 + 13
             ${NSD_CreateLink} 0 $3u 90% 12u "Oracle Java EULA"

@@ -43,11 +43,6 @@ Var StartMenuGroup
 Var radioreplace
 Var radiokeep
 
-Var JavaExe
-Var javabox
-Var eulalink
-Var InstallJava
-
 Var officebox
 Var InstallOffice
 
@@ -96,7 +91,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyName "${COMPANY}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyWebsite "${URL}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} FileVersion "${VERSION}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} FileDescription "Nuxeo Platform"
-VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "Nuxeo SA 2006-2016"
+VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "Nuxeo 2006-2017"
 InstallDirRegKey HKLM "${REGKEY}" Path
 ShowUninstDetails show
 
@@ -279,67 +274,6 @@ SectionEnd
 
 # Custom functions
 
-Function CheckJava
-    # 64bit arch with 64bit JDK
-    ${If} ${RunningX64}
-        SetRegView 64
-        ReadRegStr $2 HKLM \
-               "SOFTWARE\JavaSoft\Java Development Kit" \
-               "CurrentVersion"
-        SetRegView 32
-        StrCmp $2 "1.8" foundjava
-    ${EndIf}
-    # 64bit arch with 32bit JDK
-    ${If} ${RunningX64}
-        SetRegView 64
-        ReadRegStr $2 HKLM \
-                   "SOFTWARE\Wow6432Node\JavaSoft\Java Development Kit" \
-                   "CurrentVersion"
-        SetRegView 32
-        StrCmp $2 "1.8" foundjava
-    ${EndIf}
-    # 32bit arch with 32bit JDK
-    ReadRegStr $2 HKLM \
-           "SOFTWARE\JavaSoft\Java Development Kit" \
-           "CurrentVersion"
-    StrCmp $2 "1.8" foundjava
-    # We didn't find an adequate JDK in the registry
-    # Assume we're now looking for OpenJDK
-    # 1) Check in PATH
-    StrCpy $JavaExe "java.exe"
-    Call CheckJavaExe
-    Pop $2
-    StrCmp $2 1 foundjava
-    # 2) Check in JAVA_HOME
-    ReadEnvStr $2 "JAVA_HOME"
-    StrCpy $JavaExe "$2\bin\java.exe"
-    Call CheckJavaExe
-    Pop $2
-    StrCmp $2 1 foundjava
-    # Still no suitable java!
-    notjava:
-    Push 0
-    Goto done
-    foundjava:
-    Push 1
-    done:
-FunctionEnd
-
-Function CheckJavaExe
-    # Check whether a given java.exe exists and is suitable
-    nsExec::ExecToStack '"$JavaExe" -version'
-    Pop $1
-    Pop $2
-    StrCmp $1 "error" notjava
-    ${StrLoc} $3 "$2" "1.8.0" ">"
-    StrCmp $3 "" notjava
-    Push 1
-    Goto done
-    notjava:
-    Push 0
-    done:
-FunctionEnd
-
 Function CheckOffice
     # 64bit arch with 64bit Office
     ${If} ${RunningX64}
@@ -427,24 +361,6 @@ Function CheckPGSQL
     SetRegView 32
 FunctionEnd
 
-Function GetJava
-    Var /GLOBAL JavaURL
-    ${If} ${RunningX64}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk8_x64.exe"
-        StrCpy $2 "$TEMP/jdk-x64.exe"
-    ${Else}
-        StrCpy $JavaURL "http://www.nuxeo.org/wininstall/java/jdk8_x86.exe"
-        StrCpy $2 "$TEMP/jdk-x86.exe"
-    ${EndIf}
-    nsisdl::download /TIMEOUT=30000 $JavaURL $2
-    Pop $R0
-    StrCmp $R0 "success" +3
-    MessageBox MB_OK "Java download failed: $R0"
-    Quit
-    ExecWait "$2 /qr ADDLOCAL=ToolsFeature"
-    Delete $2
-FunctionEnd
-
 Function GetOffice
     StrCpy $2 "$TEMP\LibreOffice.msi"
     nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO5.msi" $2
@@ -519,14 +435,6 @@ Function SelectDependencies
     Var /GLOBAL NeedDialog
     StrCpy $NeedDialog 0
 
-    Var /GLOBAL HasJava
-    StrCpy $javabox 0
-    Call CheckJava
-    Pop $HasJava
-    ${If} $HasJava == 0
-        StrCpy $NeedDialog 1
-    ${EndIf}
-
     Var /GLOBAL HasOffice
     StrCpy $officebox 0
     Call CheckOffice
@@ -555,22 +463,6 @@ Function SelectDependencies
 
         StrCpy $3 0
 
-        ${If} $HasJava == 0
-            ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_java)
-            Pop $0
-            CreateFont $4 "MS Shell Dlg" 10 700
-            SendMessage $0 ${WM_SETFONT} $4 0
-            IntOp $3 $3 + 13
-            ${NSD_CreateCheckBox} 0 $3u 90% 12u "Java 8 Development Kit"
-            Pop $javabox
-            IntOp $3 $3 + 13
-            ${NSD_CreateLink} 0 $3u 90% 12u "Oracle Java EULA"
-            Pop $eulalink
-            ${NSD_OnClick} $eulalink onOracleEULAClick
-            IntOp $3 $3 + 26
-            ${NSD_Check} $javabox
-        ${EndIf}
-
         ${If} $HasOffice == 0
             ${NSD_CreateLabel} 0 $3u 90% 12u $(dep_explain_office)
             Pop $0
@@ -597,22 +489,7 @@ Function SelectDependencies
 
 FunctionEnd
 
-Function onOracleEULAClick
-
-    Pop $0
-    ExecShell "open" "http://www.oracle.com/technetwork/java/javase/terms/license/index.html"
-
-FunctionEnd
-
 Function GetSelectedDependencies
-
-    ${If} $javabox != 0
-        StrCpy $InstallJava 0
-        ${NSD_GetState} $javabox $0
-        ${If} $0 == ${BST_CHECKED}
-            StrCpy $InstallJava 1
-        ${EndIf}
-    ${EndIf}
 
     ${If} $officebox != 0
         StrCpy $InstallOffice 0
@@ -636,9 +513,6 @@ FunctionEnd
 # Called from section Main so we can have the progress dialogs
 
 Function InstallDependencies
-    ${If} $InstallJava == 1
-        Call GetJava
-    ${EndIf}
     ${If} $InstallOffice == 1
         Call GetOffice
     ${EndIf}
@@ -891,7 +765,6 @@ LangString nxupgrade_explain ${LANG_ENGLISH} "To install your new version of ${P
 
 LangString dep_title ${LANG_ENGLISH} "Dependencies"
 LangString dep_subtitle ${LANG_ENGLISH} "Download and install the following dependencies"
-LangString dep_explain_java ${LANG_ENGLISH} "WARNING: Could not detect Java 8 JDK"
 LangString dep_explain_office ${LANG_ENGLISH} "Required for document preview and conversion:"
 LangString dep_explain_pgsql ${LANG_ENGLISH}  "Automatically configure PostgreSQL database:"
 
@@ -910,7 +783,6 @@ LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version 
 
 LangString dep_title ${LANG_FRENCH} "Dépendances"
 LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_java ${LANG_FRENCH} "ATTENTION: Java 8 JDK non détecté"
 LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "Configurer une base PostgreSQL automatiquement:"
 
@@ -929,7 +801,6 @@ LangString nxupgrade_explain ${LANG_SPANISH} "To install your new version of ${P
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
-LangString dep_explain_java ${LANG_SPANISH} "No se ha detectado Java 8 JDK"
 LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
 LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automáticamente la base de datos PostgreSQL:"
 
@@ -948,7 +819,6 @@ LangString nxupgrade_explain ${LANG_GERMAN} "To install your new version of ${PR
 
 LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
 LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_java ${LANG_GERMAN} "ACHTUNG: Java 8 JDK konnte nicht gefunden werden"
 LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
@@ -967,7 +837,6 @@ LangString nxupgrade_explain ${LANG_ITALIAN} "To install your new version of ${P
 
 LangString dep_title ${LANG_ITALIAN} "Dipendenze"
 LangString dep_subtitle ${LANG_ITALIAN} "Scarica ed installa le dipendenze seguenti"
-LangString dep_explain_java ${LANG_ITALIAN} "ATTENZIONE: Impossibile rilevare Java 8 JDK"
 LangString dep_explain_office ${LANG_ITALIAN} "Richiesto per l'anteprima e la conversione del documento:"
 LangString dep_explain_pgsql ${LANG_ITALIAN}  "Configura automaticamente il database PostgreSQL:"
 

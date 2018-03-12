@@ -165,7 +165,7 @@ Section -Main SEC0000
     ${If} $InstallPGSQL == 1
         Call GetPGSQLSettings
         # stop postgresql
-        ExecWait "sc stop postgresql-9.4"
+        ExecWait "sc stop postgresql-9.6"
         Sleep 5000 # Hope the service will be stopped after 5 seconds
         # overwrite postgresql.conf with ours
         SetOutPath $APPDATA\${PRODUCTNAME}\pgsql
@@ -180,7 +180,7 @@ Section -Main SEC0000
         FileClose $2
         SetShellVarContext all
         # start postgresql
-        ExecWait "sc start postgresql-9.4"
+        ExecWait "sc start postgresql-9.6"
         Sleep 5000 # Hope the service will be started after 5 seconds
         # run db creation script
         SetShellVarContext current
@@ -377,8 +377,8 @@ Function GetOffice
 FunctionEnd
 
 Function GetPGSQL
-    StrCpy $2 "$TEMP/postgresql-9.4.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/postgresql/postgresql-9.4.exe" $2
+    StrCpy $2 "$TEMP/postgresql-9.6.exe"
+    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/postgresql/postgresql-9.6.exe" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "PostgreSQL download failed: $R0"
@@ -564,6 +564,13 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.6"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.6" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 64bit arch with 32bit PostgreSQL
@@ -604,6 +611,13 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\Wow6432Node\PostgreSQL\Installations\postgresql-9.6"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.6" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 32bit arch with 32bit PostgreSQL
@@ -640,6 +654,13 @@ Function GetPGSQLSettings
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
         StrCmp $2 "postgresql-9.4" foundpgsql
+        IntOp $1 $1 + 1
+    ${LoopWhile} $2 != ""
+    StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.6"
+    StrCpy $1 0
+    ${Do}
+        EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+        StrCmp $2 "postgresql-9.6" foundpgsql
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find PostgreSQL

@@ -165,7 +165,7 @@ Section -Main SEC0000
     ${If} $InstallPGSQL == 1
         Call GetPGSQLSettings
         # stop postgresql
-        ExecWait "sc stop postgresql-9.4"
+        ExecWait "sc stop postgresql-9.6"
         Sleep 5000 # Hope the service will be stopped after 5 seconds
         # overwrite postgresql.conf with ours
         SetOutPath $APPDATA\${PRODUCTNAME}\pgsql
@@ -180,7 +180,7 @@ Section -Main SEC0000
         FileClose $2
         SetShellVarContext all
         # start postgresql
-        ExecWait "sc start postgresql-9.4"
+        ExecWait "sc start postgresql-9.6"
         Sleep 5000 # Hope the service will be started after 5 seconds
         # run db creation script
         SetShellVarContext current
@@ -363,7 +363,7 @@ FunctionEnd
 
 Function GetOffice
     StrCpy $2 "$TEMP\LibreOffice.msi"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/LibO/LibO5.msi" $2
+    nsisdl::download /TIMEOUT=30000 "https://community.nuxeo.com/wininstall/LibO/LibO5.msi" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "LibreOffice download failed: $R0"
@@ -377,8 +377,8 @@ Function GetOffice
 FunctionEnd
 
 Function GetPGSQL
-    StrCpy $2 "$TEMP/postgresql-9.4.exe"
-    nsisdl::download /TIMEOUT=30000 "http://www.nuxeo.org/wininstall/postgresql/postgresql-9.4.exe" $2
+    StrCpy $2 "$TEMP/postgresql-9.6.exe"
+    nsisdl::download /TIMEOUT=30000 "https://community.nuxeo.com/wininstall/postgresql/postgresql-9.6.exe" $2
     Pop $R0
     StrCmp $R0 "success" +3
     MessageBox MB_OK "PostgreSQL download failed: $R0"
@@ -564,6 +564,13 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.6"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.6" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 64bit arch with 32bit PostgreSQL
@@ -604,6 +611,13 @@ Function GetPGSQLSettings
             StrCmp $2 "postgresql-9.4" foundpgsql
             IntOp $1 $1 + 1
         ${LoopWhile} $2 != ""
+        StrCpy $5 "SOFTWARE\Wow6432Node\PostgreSQL\Installations\postgresql-9.6"
+        StrCpy $1 0
+        ${Do}
+            EnumRegKey $2 HKLM "SOFTWARE\Wow6432Node\PostgreSQL\Installations" $1
+            StrCmp $2 "postgresql-9.6" foundpgsql
+            IntOp $1 $1 + 1
+        ${LoopWhile} $2 != ""
         SetRegView 32
     ${EndIf}
     # 32bit arch with 32bit PostgreSQL
@@ -640,6 +654,13 @@ Function GetPGSQLSettings
     ${Do}
         EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
         StrCmp $2 "postgresql-9.4" foundpgsql
+        IntOp $1 $1 + 1
+    ${LoopWhile} $2 != ""
+    StrCpy $5 "SOFTWARE\PostgreSQL\Installations\postgresql-9.6"
+    StrCpy $1 0
+    ${Do}
+        EnumRegKey $2 HKLM "SOFTWARE\PostgreSQL\Installations" $1
+        StrCmp $2 "postgresql-9.6" foundpgsql
         IntOp $1 $1 + 1
     ${LoopWhile} $2 != ""
     # We didn't find PostgreSQL
@@ -744,7 +765,7 @@ FunctionEnd
 # Installer Language Strings
 
 LangString ^UninstallLink ${LANG_ENGLISH} "Uninstall ${PRODUCTNAME}"
-LangString ^UninstallLink ${LANG_FRENCH} "Désinstaller ${PRODUCTNAME}"
+LangString ^UninstallLink ${LANG_FRENCH} "DÃ©sinstaller ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_SPANISH} "Desinstalar ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_GERMAN} "Demontieren Sie ${PRODUCTNAME}"
 LangString ^UninstallLink ${LANG_ITALIAN} "Rimuovere ${PRODUCTNAME}"
@@ -777,19 +798,19 @@ LangString rm_conf ${LANG_ENGLISH} "Configuration files"
 
 # French
 
-LangString nxupgrade_title ${LANG_FRENCH} "Une installation de ${PRODUCTNAME} a été détectée"
-LangString nxupgrade_subtitle ${LANG_FRENCH} "Désinstaller et mettre à jour?"
-LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version de ${PRODUCTNAME}, l'installeur doit supprimer la précédente.$\r$\n$\r$\nCeci n'affectera pas vos données.$\r$\n$\r$\nSi vous préferez garder la version actuelle, veuillez annuler l'installation."
+LangString nxupgrade_title ${LANG_FRENCH} "Une installation de ${PRODUCTNAME} a Ã©tÃ© dÃ©tectÃ©e"
+LangString nxupgrade_subtitle ${LANG_FRENCH} "DÃ©sinstaller et mettre Ã  jour?"
+LangString nxupgrade_explain ${LANG_FRENCH} "Pour installer la nouvelle version de ${PRODUCTNAME}, l'installeur doit supprimer la prÃ©cÃ©dente.$\r$\n$\r$\nCeci n'affectera pas vos donnÃ©es.$\r$\n$\r$\nSi vous prÃ©ferez garder la version actuelle, veuillez annuler l'installation."
 
-LangString dep_title ${LANG_FRENCH} "Dépendances"
-LangString dep_subtitle ${LANG_FRENCH} "Télécharger et installer les dépendances suivantes"
-LangString dep_explain_office ${LANG_FRENCH} "Nécessaire pour la prévisualisation et la conversion des documents:"
+LangString dep_title ${LANG_FRENCH} "DÃ©pendances"
+LangString dep_subtitle ${LANG_FRENCH} "TÃ©lÃ©charger et installer les dÃ©pendances suivantes"
+LangString dep_explain_office ${LANG_FRENCH} "NÃ©cessaire pour la prÃ©visualisation et la conversion des documents:"
 LangString dep_explain_pgsql ${LANG_FRENCH}  "Configurer une base PostgreSQL automatiquement:"
 
 LangString rm_title ${LANG_FRENCH} "Options de suppression"
-LangString rm_subtitle ${LANG_FRENCH} "Voulez-vous supprimer les éléments suivants ?"
+LangString rm_subtitle ${LANG_FRENCH} "Voulez-vous supprimer les Ã©lÃ©ments suivants ?"
 LangString rm_tmp ${LANG_FRENCH} "Fichiers temporaires"
-LangString rm_data ${LANG_FRENCH} "Fichiers de données"
+LangString rm_data ${LANG_FRENCH} "Fichiers de donnÃ©es"
 LangString rm_logs ${LANG_FRENCH} "Fichiers de log"
 LangString rm_conf ${LANG_FRENCH} "Fichiers de configuration"
 
@@ -801,15 +822,15 @@ LangString nxupgrade_explain ${LANG_SPANISH} "To install your new version of ${P
 
 LangString dep_title ${LANG_SPANISH} "Dependencias"
 LangString dep_subtitle ${LANG_SPANISH} "AVISO: Descargue e instale las siguientes dependencias"
-LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversión y previsualización de documentos:"
-LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automáticamente la base de datos PostgreSQL:"
+LangString dep_explain_office ${LANG_SPANISH} "Requerido para la conversiÃ³n y previsualizaciÃ³n de documentos:"
+LangString dep_explain_pgsql ${LANG_SPANISH}  "Configurar automÃ¡ticamente la base de datos PostgreSQL:"
 
 LangString rm_title ${LANG_SPANISH} "Opciones de eliminado"
-LangString rm_subtitle ${LANG_SPANISH} "¿Desea eliminar el siguiente?"
+LangString rm_subtitle ${LANG_SPANISH} "Â¿Desea eliminar el siguiente?"
 LangString rm_tmp ${LANG_SPANISH} "Archivos temporales"
 LangString rm_data ${LANG_SPANISH} "Repositorio de datos"
 LangString rm_logs ${LANG_SPANISH} "Archivos de logs"
-LangString rm_conf ${LANG_SPANISH} "Archivos de configuración"
+LangString rm_conf ${LANG_SPANISH} "Archivos de configuraciÃ³n"
 
 # German
 
@@ -817,17 +838,17 @@ LangString nxupgrade_title ${LANG_GERMAN} "An existing installation of ${PRODUCT
 LangString nxupgrade_subtitle ${LANG_GERMAN} "Uninstall and upgrade?"
 LangString nxupgrade_explain ${LANG_GERMAN} "To install your new version of ${PRODUCTNAME}, the installer needs to remove the previous one.$\r$\n$\r$\nThis will not affect your data.$\r$\n$\r$\nIf you prefer to keep your existing version, please cancel the installation."
 
-LangString dep_title ${LANG_GERMAN} "Abhängigkeiten"
-LangString dep_subtitle ${LANG_GERMAN} "Lädt herunter und installiert folgende Abhängigkeiten"
-LangString dep_explain_office ${LANG_GERMAN} "Wird für die Dokumentvorschau und Konvertierung benötigt:"
+LangString dep_title ${LANG_GERMAN} "AbhÃ¤ngigkeiten"
+LangString dep_subtitle ${LANG_GERMAN} "LÃ¤dt herunter und installiert folgende AbhÃ¤ngigkeiten"
+LangString dep_explain_office ${LANG_GERMAN} "Wird fÃ¼r die Dokumentvorschau und Konvertierung benÃ¶tigt:"
 LangString dep_explain_pgsql ${LANG_GERMAN}  "Sie konfigurieren automatisch PostgreSQL Datenbank:"
 
 LangString rm_title ${LANG_GERMAN} "Demontierbare Optionen"
 LangString rm_subtitle ${LANG_GERMAN} "Wollen Sie das folgende demontieren ?"
-LangString rm_tmp ${LANG_GERMAN} "TMP löschen"
-LangString rm_data ${LANG_GERMAN} "Daten löschen"
-LangString rm_logs ${LANG_GERMAN} "Log-Infos löschen"
-LangString rm_conf ${LANG_GERMAN} "Konfiguration löschen"
+LangString rm_tmp ${LANG_GERMAN} "TMP lÃ¶schen"
+LangString rm_data ${LANG_GERMAN} "Daten lÃ¶schen"
+LangString rm_logs ${LANG_GERMAN} "Log-Infos lÃ¶schen"
+LangString rm_conf ${LANG_GERMAN} "Konfiguration lÃ¶schen"
 
 # Italian
 

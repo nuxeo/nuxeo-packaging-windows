@@ -5,7 +5,7 @@
 
   <groupId>org.nuxeo.packaging</groupId>
   <artifactId>windows-installer-3parties</artifactId>
-  <version>3.1</version>
+  <version>3.2-SNAPSHOT</version>
   <packaging>zip</packaging>
   <description>3rd parties to package within Windows installer</description>
 
@@ -25,56 +25,40 @@
   <mailingLists>
     <mailingList>
       <name>Nuxeo ECM list</name>
-      <post>ecm@lists.nuxeo.com</post>
-      <subscribe>http://lists.nuxeo.com/mailman/listinfo/ECM</subscribe>
-      <unsubscribe>http://lists.nuxeo.com/mailman/listinfo/ECM</unsubscribe>
-      <archive>http://lists.nuxeo.com/pipermail/ecm/</archive>
-      <otherArchives>
-        <otherArchive>
-          http://dir.gmane.org/gmane.comp.cms.nuxeo.bugs
-        </otherArchive>
-        <otherArchive>
-          http://www.mail-archive.com/ecm@lists.nuxeo.com/
-        </otherArchive>
-      </otherArchives>
+      <post>ecm-checkins@lists.nuxeo.com</post>
+      <subscribe>https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-qa</subscribe>
+      <unsubscribe>https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-qa</unsubscribe>
+      <archive>https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-checkins</archive>
     </mailingList>
     <mailingList>
       <name>Nuxeo ECM checkins list</name>
       <subscribe>
-        http://lists.nuxeo.com/mailman/listinfo/ecm-checkins
+        https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-checkins
       </subscribe>
       <unsubscribe>
-        http://lists.nuxeo.com/mailman/listinfo/ecm-checkins
+        https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-checkins
       </unsubscribe>
-      <archive>http://lists.nuxeo.com/pipermail/ecm-checkins/</archive>
-      <otherArchives>
-        <otherArchive>
-          http://dir.gmane.org/gmane.comp.cms.nuxeo.scm
-        </otherArchive>
-        <otherArchive>
-          http://www.mail-archive.com/ecm-checkins@lists.nuxeo.com/
-        </otherArchive>
-      </otherArchives>
+      <archive>https://groups.google.com/a/lists.nuxeo.com/forum/#!forum/ecm-checkins</archive>
     </mailingList>
     <mailingList>
       <name>Nuxeo ECM developers list</name>
-      <post>nuxeo-dev@lists.nuxeo.com</post>
-      <subscribe>http://lists.nuxeo.com/mailman/listinfo/nuxeo-dev</subscribe>
+      <post>dev@nuxeo.com</post>
+      <subscribe>https://groups.google.com/a/nuxeo.com/forum/?hl=en#!forum/dev</subscribe>
       <unsubscribe>
-        http://lists.nuxeo.com/mailman/listinfo/nuxeo-dev
+        https://groups.google.com/a/nuxeo.com/forum/?hl=en#!forum/dev
       </unsubscribe>
-      <archive>http://lists.nuxeo.com/pipermail/nuxeo-dev/</archive>
+      <archive>https://groups.google.com/a/nuxeo.com/forum/?hl=en#!forum/dev</archive>
     </mailingList>
   </mailingLists>
 
   <issueManagement>
     <system>jira</system>
-    <url>http://jira.nuxeo.com/browse/NXP</url>
+    <url>https://jira.nuxeo.com/browse/NXBT/component/10640/</url>
   </issueManagement>
 
   <ciManagement>
     <system>Jenkins</system>
-    <url>http://qa.nuxeo.org/jenkins/</url>
+    <url>https://qa.nuxeo.org/jenkins/job/Deploy/job/nuxeo-packaging-ondemand/</url>
     <notifiers>
       <notifier>
         <type>mail</type>
@@ -94,62 +78,22 @@
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-enforcer-plugin</artifactId>
-              <configuration>
-                <rules>
-                  <requireReleaseDeps>
-                    <!-- Exclusions are tolerated for nightly "date-based" releases only -->
-                    <excludes>
-                      <exclude>org.nuxeo:nuxeo-ftest:1.8.6-SNAPSHOT:zip</exclude>
-                      <!-- <exclude>org.jboss.seam:*</exclude> -->
-                    </excludes>
-                  </requireReleaseDeps>
-                </rules>
-              </configuration>
             </plugin>
           </plugins>
         </pluginManagement>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
           </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>gwt-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>compile</goal>
-                </goals>
-                <configuration>
-                  <draftCompile>false</draftCompile>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- http://jira.codehaus.org/browse/MLICENSE-76 prevents automated run -->
-          <!-- <plugin> -->
-          <!-- <groupId>org.codehaus.mojo</groupId> -->
-          <!-- <artifactId>license-maven-plugin</artifactId> -->
-          <!-- <inherited>false</inherited> -->
-          <!-- <executions> -->
-          <!-- <execution> -->
-          <!-- <id>aggregate-add-third-party</id> -->
-          <!-- <goals> -->
-          <!-- <goal>aggregate-add-third-party</goal> -->
-          <!-- </goals> -->
-          <!-- <phase>verify</phase> -->
-          <!-- </execution> -->
-          <!-- </executions> -->
-          <!-- </plugin> -->
         </plugins>
       </build>
       <repositories>
@@ -242,106 +186,6 @@
         </snapshotRepository>
       </distributionManagement>
     </profile>
-
-    <profile>
-      <id>qapriv</id>
-      <repositories>
-        <repository>
-          <id>internal-releases</id>
-          <url>
-            http://mavenin.nuxeo.com/nexus/content/groups/internal-releases
-          </url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>internal-snapshots</id>
-          <url>
-            http://mavenin.nuxeo.com/nexus/content/groups/internal-snapshots
-          </url>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>releases</id>
-          <url>
-            https://mavenpriv.nuxeo.com/nexus/content/repositories/releases
-          </url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>snapshots</id>
-          <url>
-            https://mavenpriv.nuxeo.com/nexus/content/repositories/snapshots
-          </url>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-          </snapshots>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>internal-releases</id>
-          <url>
-            http://mavenin.nuxeo.com/nexus/content/groups/internal-releases
-          </url>
-          <name>Nuxeo virtual release repository</name>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-          <id>internal-snapshots</id>
-          <url>
-            http://mavenin.nuxeo.com/nexus/content/groups/internal-snapshots
-          </url>
-          <name>Nuxeo virtual snapshot repository</name>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <updatePolicy>always</updatePolicy>
-            <enabled>true</enabled>
-          </snapshots>
-        </pluginRepository>
-      </pluginRepositories>
-      <distributionManagement>
-        <repository>
-          <id>releases</id>
-          <url>
-            https://mavenpriv.nuxeo.com/nexus/content/repositories/releases
-          </url>
-        </repository>
-        <snapshotRepository>
-          <id>snapshots</id>
-          <url>
-            https://mavenpriv.nuxeo.com/nexus/content/repositories/snapshots
-          </url>
-          <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-      </distributionManagement>
-    </profile>
   </profiles>
 
   <developers>
@@ -354,8 +198,8 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/nuxeo/nuxeo.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com:nuxeo/nuxeo.git</developerConnection>
+    <connection>scm:git@github.com:nuxeo/nuxeo-packaging-windows.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:nuxeo/nuxeo-packaging-windows.git</developerConnection>
     <url>http://nuxeo.github.io</url>
   </scm>
 
@@ -411,19 +255,19 @@
 
   <distributionManagement>
     <site>
-      <id>maven-website</id>
-      <url>scpexe://gironde.nuxeo.com/home/mavenweb/site/</url>
+      <id>nuxeo apt staging website</id>
+      <url>scpexe://lethe.nuxeo.com/var/www/community.nuxeo.com/static/staging/</url>
     </site>
     <repository>
       <id>public-releases</id>
       <url>
-        http://mavenin.nuxeo.com/nexus/content/repositories/public-releases
+        https://maven.nuxeo.org/nexus/content/repositories/vendor-releases/
       </url>
     </repository>
     <snapshotRepository>
       <id>public-snapshots</id>
       <url>
-        http://mavenin.nuxeo.com/nexus/content/repositories/public-snapshots
+        https://maven.nuxeo.org/nexus/content/repositories/vendor-snapshots/
       </url>
       <uniqueVersion>true</uniqueVersion>
     </snapshotRepository>

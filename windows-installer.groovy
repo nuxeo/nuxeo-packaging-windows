@@ -30,41 +30,31 @@ properties([[$class: 'BuildDiscarderProperty',
             ])
 
 node('OLDJOYEUX') {
-    timestamps {
-        timeout(time: 240, unit: 'MINUTES') {
+  timestamps {
+    timeout(time: 240, unit: 'MINUTES') {
+      checkout([$class: 'GitSCM', branches: [[name: '*/feature-NXBT-2399-split&fix']], browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '3rdparties/.*', includedRegions: '']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/nuxeo/nuxeo-packaging-windows']]])
+      sh '''#!/bin/bash -ex
+        MAVEN_OPTS="-Xmx512m -Xmx2048m"
+        if [ -n "$DISTRIBUTION_URL" ]; then
+          DISTRIBUTION="-Ddistribution.archive=$DISTRIBUTION_URL"
+        else
+          DISTRIBUTION=""
+        fi
 
-		checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/feature-NXBT-2399-split&fix']],
-                browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [],
-                submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-packaging-windows.git']]]
-		sh '''
-		    #!/bin/bash -ex
-
-		    MAVEN_OPTS="-Xmx512m -Xmx2048m"
-
-		    if [ -n "$DISTRIBUTION_URL" ]; then
-			DISTRIBUTION="-Ddistribution.archive=$DISTRIBUTION_URL"
-		    else
-			DISTRIBUTION=""
-		    fi
-
-                    ./script.sh ${NUXEO_VERSION}
-                   mvn deploy:deploy-file -DgroupId=org.nuxeo.packaging -DartifactId=windows-installer-3parties -Dversion=5.0 -DgeneratePom=true -Dpackaging=zip -DrepositoryId=vendor-releases -Durl=https://maven-eu.nuxeo.org/nexus/content/repositories/vendor-releases/ -Dfile=windows/windows3rdParties-${NUXEO_VERSION}.zip
-                    rm -f windows/windows3rdParties-${NUXEO_VERSION}.zip
-
-		    if [ "$PUBLISH_EXE" = "true" ]; then
-			echo "*** "$(date +"%H:%M:%S")" Building and publishing .exe package"
-			mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION -Ddeploy.host=${DEPLOY_HOST} -Ddeploy.path=$STAGING_PATH
-			echo "*** "$(date +"%H:%M:%S")" Publishing .exe package to staging"
-			PKG=$(find . -name 'nuxeo-*-setup.exe' -print | head -n 1)
-			FILENAME=$(basename $PKG)
-			scp $PKG ${DEPLOY_HOST}:$STAGING_PATH
-			echo "*** "$(date +"%H:%M:%S")" Generating .exe package signatures on staging"
-			ssh ${DEPLOY_HOST} "cd $STAGING_PATH && md5sum $FILENAME > ${FILENAME}.md5 && sha256sum $FILENAME > ${FILENAME}.sha256"
-		    else
-			echo "*** "$(date +"%H:%M:%S")" Building .exe package"
-			mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION
-		    fi
-		    '''
-        }
+        if [ "$PUBLISH_EXE" = "true" ]; then
+          echo "*** "$(date +"%H:%M:%S")" Building and publishing .exe package"
+          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION -Ddeploy.host=${DEPLOY_HOST} -Ddeploy.path=$STAGING_PATH
+          echo "*** "$(date +"%H:%M:%S")" Publishing .exe package to staging"
+          PKG=$(find . -name 'nuxeo-*-setup.exe' -print | head -n 1)
+          FILENAME=$(basename $PKG)
+          scp $PKG ${DEPLOY_HOST}:$STAGING_PATH
+          echo "*** "$(date +"%H:%M:%S")" Generating .exe package signatures on staging"
+          ssh ${DEPLOY_HOST} "cd $STAGING_PATH && md5sum $FILENAME > ${FILENAME}.md5 && sha256sum $FILENAME > ${FILENAME}.sha256"
+        else
+          echo "*** "$(date +"%H:%M:%S")" Building .exe package"
+          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION
+        fi
+      '''
     }
+  }
 }

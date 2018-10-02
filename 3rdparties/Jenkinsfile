@@ -1,0 +1,44 @@
+/*
+ * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     mguillaume
+ *     atimic
+ *     jcarsique
+ */
+
+properties([[$class: 'BuildDiscarderProperty',
+            strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '1', daysToKeepStr: '60', numToKeepStr: '60']],
+            [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
+            [$class: 'ParametersDefinitionProperty', parameterDefinitions: [
+            [$class: 'StringParameterDefinition', defaultValue: '10.3-SNAPSHOT', description: 'Product version to build', name: 'NUXEO_VERSION'],
+            [$class: 'StringParameterDefinition', defaultValue: '', description: 'Optional - Alternate URL to download the distribution from instead of the default Maven artifact download. For instance: http://community.nuxeo.com/static/snapshots/nuxeo-server-tomcat-10.3-SNAPSHOT.zip'],
+            [$class: 'BooleanParameterDefinition', defaultValue: true, description: 'Publish .exe package', name: 'PUBLISH_EXE'],
+            [$class: 'StringParameterDefinition', defaultValue: '/var/www/community.nuxeo.com/static/staging/', description: 'Staging publishing destination path (for scp)', name: 'STAGING_PATH'],
+            [$class: 'StringParameterDefinition', defaultValue: 'nuxeo@lethe.nuxeo.com', description: 'Publishing destination host (for scp)', name: 'DEPLOY_HOST']]],
+            ])
+
+node('OLDJOYEUX') {
+  timestamps {
+    timeout(time: 240, unit: 'MINUTES') {
+      checkout([$class: 'GitSCM', branches: [[name: '*/feature-NXBT-2399-split&fix']], browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '', includedRegions: '3rdparties/.*']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/nuxeo/nuxeo-packaging-windows']]])
+      sh '''#!/bin/bash -ex
+        cd 3rdparties
+        ./zip.sh
+        mvn deploy
+      '''
+    }
+  }
+}

@@ -2,103 +2,96 @@
          default="package"
          xmlns:nx="urn:nuxeo-build"
          xmlns:artifact="urn:nuxeo-artifact">
-    <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
-    <taskdef resource="org/nuxeo/build/artifact/antlib.xml"
-           uri="urn:nuxeo-artifact" />
-    <taskdef resource="net/sf/antcontrib/antlib.xml" />
+  <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
+  <taskdef resource="org/nuxeo/build/artifact/antlib.xml" uri="urn:nuxeo-artifact" />
+  <taskdef resource="net/sf/antcontrib/antlib.xml" />
 
-    <property name="out.dir" value="${maven.project.build.directory}" />
-    <property name="resources.dir" value="${out.dir}/resources" />
-    <property name="resources.dir.os" value="${out.dir}${file.separator}resources" />
-    <property name="distribution.dir" value="${out.dir}/distribution" />
-    <property name="distribution.dir.os" value="${out.dir}${file.separator}distribution" />
+  <property name="out.dir" value="${maven.project.build.directory}" />
+  <property name="resources.dir" value="${out.dir}/resources" />
+  <property name="resources.dir.os" value="${out.dir}${file.separator}resources" />
+  <property name="distribution.dir" value="${out.dir}/distribution" />
+  <property name="distribution.dir.os" value="${out.dir}${file.separator}distribution" />
 
-    <property name="deploy.host" value="lethe.nuxeo.com" />
-    <property name="deploy.user" value="nuxeo" />
-    <property name="deploy.basedir" value="/var/www/community.nuxeo.com/static" />
+  <property name="deploy.host" value="lethe.nuxeo.com" />
+  <property name="deploy.user" value="nuxeo" />
+  <property name="deploy.basedir" value="/var/www/community.nuxeo.com/static" />
 
 
-    <!-- Get variables from environment if set, use defaults otherwise -->
-    <target name="init">
-        <!-- distribution settings -->
-        <condition property="distribution.groupId" value="${env.distribution.groupId}"
-                   else="org.nuxeo.ecm.distribution">
-            <isset property="env.distribution.groupId" />
-        </condition>
-        <condition property="distribution.artifactId" value="${env.distribution.artifactId}"
-                   else="nuxeo-server-tomcat">
-            <isset property="env.distribution.artifactId" />
-        </condition>
-        <condition property="distribution.version" value="${env.distribution.version}"
-                   else="9.10-SNAPSHOT">
-            <isset property="env.distribution.version" />
-        </condition>
-        <condition property="distribution.classifier" value="${env.distribution.classifier}"
-                   else="">
-            <isset property="env.distribution.classifier" />
-        </condition>
-        <condition property="distribution.archive" value="${env.distribution.archive}">
-            <isset property="env.distribution.archive" />
-        </condition>
-        <!-- setup file settings -->
-        <condition property="package.name" value="${env.package.name}"
-                   else="Nuxeo">
-            <isset property="env.package.name" />
-        </condition>
-        <condition property="package.version" value="${env.package.version}"
-                   else="9.10.0.0">
-            <isset property="env.package.version" />
-        </condition>
-        <condition property="package.filename" value="${env.package.filename}">
-            <isset property="env.package.filename" />
-        </condition>
-        <!-- package filename -->
+  <!-- Get variables from environment if set, use defaults otherwise -->
+  <target name="init">
+    <!-- distribution settings -->
+    <condition property="distribution.groupId" value="${env.distribution.groupId}" else="org.nuxeo.ecm.distribution">
+      <isset property="env.distribution.groupId" />
+    </condition>
+    <condition property="distribution.artifactId" value="${env.distribution.artifactId}" else="nuxeo-server-tomcat">
+      <isset property="env.distribution.artifactId" />
+    </condition>
+    <condition property="distribution.version" value="${env.distribution.version}" else="9.10-SNAPSHOT">
+      <isset property="env.distribution.version" />
+    </condition>
+    <condition property="distribution.classifier" value="${env.distribution.classifier}" else="">
+      <isset property="env.distribution.classifier" />
+    </condition>
+    <condition property="distribution.archive" value="${env.distribution.archive}">
+      <isset property="env.distribution.archive" />
+    </condition>
+    <!-- setup file settings -->
+    <condition property="package.name" value="${env.package.name}" else="Nuxeo">
+      <isset property="env.package.name" />
+    </condition>
+    <condition property="package.version" value="${env.package.version}" else="9.10.0.0">
+      <isset property="env.package.version" />
+    </condition>
+    <condition property="package.filename" value="${env.package.filename}">
+      <isset property="env.package.filename" />
+    </condition>
+    <!-- package filename -->
+    <if>
+      <not>
+        <isset property="package.filename" />
+      </not>
+      <!-- we didn't pick it up from the environment -->
+      <then>
         <if>
-            <not>
-                <isset property="package.filename" />
-            </not>
-            <!-- we didn't pick it up from the environment -->
-            <then>
-                <if>
-                    <contains string="${distribution.version}" substring="SNAPSHOT" />
-                    <!-- it's a snapshot -->
-                    <then>
-                        <tstamp>
-                            <format property="build.timestamp" pattern="yyyyMMdd" />
-                        </tstamp>
-                        <property name="package.filename" value="nuxeo-${distribution.version}-${build.timestamp}-setup.exe" />
-                        <property name="deploy.subdir" value="snapshots" />
-                    </then>
-                    <!-- it's not a snapshot -->
-                    <else>
-                        <property name="package.filename" value="nuxeo-${distribution.version}-setup.exe" />
-                        <property name="deploy.subdir" value="staging/nuxeo-${distribution.version}" />
-                    </else>
-                </if>
-            </then>
+          <contains string="${distribution.version}" substring="SNAPSHOT" />
+          <!-- it's a snapshot -->
+          <then>
+            <tstamp>
+              <format property="build.timestamp" pattern="yyyyMMdd" />
+            </tstamp>
+            <property name="package.filename" value="nuxeo-${distribution.version}-${build.timestamp}-setup.exe" />
+            <property name="deploy.subdir" value="snapshots" />
+          </then>
+          <!-- it's not a snapshot -->
+          <else>
+            <property name="package.filename" value="nuxeo-${distribution.version}-setup.exe" />
+            <property name="deploy.subdir" value="staging/nuxeo-${distribution.version}" />
+          </else>
         </if>
+      </then>
+    </if>
 
-        <!-- nsis settings -->
-        <if>
-            <os family="windows" />
-            <then>
-                <condition property="nsis.location" value="${env.nsis.location}"
-                           else="C:/Program Files (x86)/NSIS/makensis.exe">
-                    <isset property="env.nsis.location" />
-                </condition>
-            </then>
-            <else>
-                <condition property="nsis.location" value="${env.nsis.location}"
-                           else="/usr/local/nsis/nsis-2.46/makensis">
-                    <isset property="env.nsis.location" />
-                </condition>
-            </else>
-        </if>
-    </target>
+    <!-- nsis settings -->
+    <if>
+      <os family="windows" />
+      <then>
+        <condition property="nsis.location"
+                   value="${env.nsis.location}"
+                   else="C:/Program Files (x86)/NSIS/makensis.exe">
+          <isset property="env.nsis.location" />
+        </condition>
+      </then>
+      <else>
+        <condition property="nsis.location" value="${env.nsis.location}" else="/usr/local/nsis/nsis-2.46/makensis">
+          <isset property="env.nsis.location" />
+        </condition>
+      </else>
+    </if>
+  </target>
 
 
-    <target name="setup" depends="init">
-        <echo file="${out.dir}/setup.nsh" append="false">
+  <target name="setup" depends="init">
+    <echo file="${out.dir}/setup.nsh" append="false">
 OutFile "${out.dir}${file.separator}${package.filename}"
 VIProductVersion "${package.version}"
 !define SEP "${file.separator}"
@@ -107,111 +100,105 @@ VIProductVersion "${package.version}"
 !define NUXEO_DISTRIBUTION_DIR "${distribution.dir.os}"
 !define VERSION "${distribution.version}"
 </echo>
-    </target>
+  </target>
 
 
-    <!-- Default target: create the .exe -->
-    <target name="package" depends="setup">
+  <!-- Default target: create the .exe -->
+  <target name="package" depends="setup">
 
-        <!-- copy setup.nsi -->
-        <copy file="${maven.basedir}/setup.nsi" todir="${out.dir}" />
+    <!-- copy setup.nsi -->
+    <copy file="${maven.basedir}/setup.nsi" todir="${out.dir}" />
 
-        <!-- prepare 3rd party libs -->
-        <mkdir dir="${resources.dir}/3rdparty" />
-        <unzip dest="${resources.dir}/3rdparty" overwrite="true">
-            <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:3.1:zip" />
-        </unzip>
+    <!-- prepare 3rd party libs -->
+    <mkdir dir="${resources.dir}/3rdparty" />
+    <unzip dest="${resources.dir}/3rdparty" overwrite="true">
+      <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:3.2-SNAPSHOT:zip" />
+    </unzip>
 
-        <!-- prepare static resources -->
-        <copy todir="${resources.dir}">
-            <fileset dir="${maven.basedir}/resources">
-                <include name="**" />
-            </fileset>
-        </copy>
+    <!-- prepare static resources -->
+    <copy todir="${resources.dir}">
+      <fileset dir="${maven.basedir}/resources">
+        <include name="**" />
+      </fileset>
+    </copy>
 
-        <!-- prepare distribution -->
+    <!-- prepare distribution -->
+    <if>
+      <isset property="distribution.archive" />
+      <then>
         <if>
-            <isset property="distribution.archive" />
-            <then>
-                <if>
-                    <contains string="${distribution.archive}" substring="://" />
-                    <then>
-                        <mkdir dir="${out.dir}" />
-                        <get src="${distribution.archive}" dest="${out.dir}/distribution.zip" verbose="true" />
-                        <unzip src="${out.dir}/distribution.zip" dest="${out.dir}/tmpdist" overwrite="true" />
-                    </then>
-                    <else>
-                        <unzip src="${distribution.archive}" dest="${out.dir}/tmpdist" overwrite="true" />
-                    </else>
-                </if>
-            </then>
-            <else>
-                <unzip dest="${out.dir}/tmpdist" overwrite="true">
-                    <artifact:resolveFile key="${distribution.groupId}:${distribution.artifactId}:${distribution.version}:zip:${distribution.classifier}" />
-                </unzip>
-            </else>
+          <contains string="${distribution.archive}" substring="://" />
+          <then>
+            <mkdir dir="${out.dir}" />
+            <get src="${distribution.archive}" dest="${out.dir}/distribution.zip" verbose="true" />
+            <unzip src="${out.dir}/distribution.zip" dest="${out.dir}/tmpdist" overwrite="true" />
+          </then>
+          <else>
+            <unzip src="${distribution.archive}" dest="${out.dir}/tmpdist" overwrite="true" />
+          </else>
         </if>
-        <move todir="${distribution.dir}">
-            <fileset dir="${out.dir}/tmpdist">
-                <include name="*/**" />
-                <exclude name="*/*shell*" />
-                <exclude name="**/*.sh" />
-                <exclude name="**/*.command" />
-                <exclude name="*/bin/*ctl" />
-                <exclude name="*/bin/pack" />
-            </fileset>
-            <regexpmapper handledirsep="true" from="^([^/]+)/(.+)" to="\2" />
-        </move>
-        <delete includeEmptyDirs="true">
-            <fileset dir="${out.dir}/tmpdist" />
-        </delete>
+      </then>
+      <else>
+        <unzip dest="${out.dir}/tmpdist" overwrite="true">
+          <artifact:resolveFile key="${distribution.groupId}:${distribution.artifactId}:${distribution.version}:zip:${distribution.classifier}" />
+        </unzip>
+      </else>
+    </if>
+    <move todir="${distribution.dir}">
+      <fileset dir="${out.dir}/tmpdist">
+        <include name="*/**" />
+        <exclude name="*/*shell*" />
+        <exclude name="**/*.sh" />
+        <exclude name="**/*.command" />
+        <exclude name="*/bin/*ctl" />
+        <exclude name="*/bin/pack" />
+      </fileset>
+      <regexpmapper handledirsep="true" from="^([^/]+)/(.+)" to="\2" />
+    </move>
+    <delete includeEmptyDirs="true">
+      <fileset dir="${out.dir}/tmpdist" />
+    </delete>
 
-        <!-- add package type to distribution.properties -->
-        <echo file="${distribution.dir}/templates/common/config/distribution.properties" append="true">
+    <!-- add package type to distribution.properties -->
+    <echo file="${distribution.dir}/templates/common/config/distribution.properties" append="true">
 org.nuxeo.distribution.package=exe
 </echo>
 
-        <dirname property="nsis.dir" file="${nsis.location}" />
-        <exec executable="${nsis.location}"
-              dir="${out.dir}"
-              failonerror="true">
-            <arg value="setup.nsi" />
-            <env key="NSISDIR" file="${nsis.dir}" />
-        </exec>
+    <dirname property="nsis.dir" file="${nsis.location}" />
+    <exec executable="${nsis.location}" dir="${out.dir}" failonerror="true">
+      <arg value="setup.nsi" />
+      <env key="NSISDIR" file="${nsis.dir}" />
+    </exec>
 
-    </target>
+  </target>
 
-    <!-- deployment target -->
-    <!-- Note: For snapshots, this will fail if package happens before
+  <!-- deployment target -->
+  <!-- Note: For snapshots, this will fail if package happens before
                midnight but deploy happens after midnight.
                This is due to the build stamp being recalculated between executions.
     -->
-    <target name="deploy" depends="init">
+  <target name="deploy" depends="init">
 
-        <if>
-            <isset property="deploy.subdir" />
-            <then>
-                <echo message="*** Creating deployment directory on remote host ***" />
-                <exec executable="ssh"
-                      failonerror="true">
-                    <arg value="${deploy.user}@${deploy.host}" />
-                    <arg value="mkdir" />
-                    <arg value="-p" />
-                    <arg value="${deploy.basedir}/${deploy.subdir}" />
-                </exec>
-                <echo message="*** Uploading package to deployment host ***" />
-                <exec dir="${out.dir}"
-                      executable="scp"
-                      failonerror="true">
-                    <arg value="${package.filename}" />
-                    <arg value="${deploy.user}@${deploy.host}:${deploy.basedir}/${deploy.subdir}/" />
-                </exec>
-            </then>
-            <else>
-                <echo message="*** No automated deployment for custom filenames ***" />
-            </else>
-        </if>
-
-    </target>
+    <if>
+      <isset property="deploy.subdir" />
+      <then>
+        <echo message="*** Creating deployment directory on remote host ***" />
+        <exec executable="ssh" failonerror="true">
+          <arg value="${deploy.user}@${deploy.host}" />
+          <arg value="mkdir" />
+          <arg value="-p" />
+          <arg value="${deploy.basedir}/${deploy.subdir}" />
+        </exec>
+        <echo message="*** Uploading package to deployment host ***" />
+        <exec dir="${out.dir}" executable="scp" failonerror="true">
+          <arg value="${package.filename}" />
+          <arg value="${deploy.user}@${deploy.host}:${deploy.basedir}/${deploy.subdir}/" />
+        </exec>
+      </then>
+      <else>
+        <echo message="*** No automated deployment for custom filenames ***" />
+      </else>
+    </if>
+  </target>
 
 </project>

@@ -33,8 +33,9 @@ node('OLDJOYEUX') {
     timestamps {
         timeout(time: 240, unit: 'MINUTES') {
 
-		checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
-                userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-packaging-windows.git']]]
+		checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/feature-NXBT-2399-split&fix']],
+                browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [],
+                submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-packaging-windows.git']]]
 		sh '''
 		    #!/bin/bash -ex
 
@@ -46,7 +47,9 @@ node('OLDJOYEUX') {
 			DISTRIBUTION=""
 		    fi
 
-		    cd nuxeo-packaging-windows
+                    ./script.sh ${NUXEO_VERSION}
+                   mvn deploy:deploy-file -DgroupId=org.nuxeo.packaging -DartifactId=windows-installer-3parties -Dversion=5.0 -DgeneratePom=true -Dpackaging=zip -DrepositoryId=vendor-releases -Durl=https://maven-eu.nuxeo.org/nexus/content/repositories/vendor-releases/ -Dfile=windows/windows3rdParties-${NUXEO_VERSION}.zip
+                    rm -f windows/windows3rdParties-${NUXEO_VERSION}.zip
 
 		    if [ "$PUBLISH_EXE" = "true" ]; then
 			echo "*** "$(date +"%H:%M:%S")" Building and publishing .exe package"

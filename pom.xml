@@ -83,16 +83,16 @@
         </pluginManagement>
         <plugins>
           <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>attach-sources</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
@@ -259,46 +259,18 @@
       <url>scpexe://lethe.nuxeo.com/var/www/community.nuxeo.com/static/staging/</url>
     </site>
     <repository>
-      <id>vendor-releases</id>
-      <url>https://maven-eu.nuxeo.org/nexus/content/repositories/vendor-releases/</url>
+      <id>public-releases</id>
+      <url>http://mavenin.nuxeo.com/nexus/content/repositories/public-releases</url>
     </repository>
     <snapshotRepository>
-      <id>vendor-snapshots</id>
-      <url>https://maven-eu.nuxeo.org/nexus/content/repositories/vendor-snapshots/</url>
+      <id>public-snapshots</id>
+      <url>http://mavenin.nuxeo.com/nexus/content/repositories/public-snapshots</url>
       <uniqueVersion>true</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.nuxeo.packaging</groupId>
-                  <artifactId>windows-installer-3parties</artifactId>
-                  <version>3.2-SNAPSHOT</version>
-                  <type>zip</type>
-                  <overWrite>false</overWrite>
-                  <outputDirectory>${basedir}</outputDirectory>
-                  <destFileName>windows-installer-3parties-3.2-SNAPSHOT.zip</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <!-- other configurations here -->
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.nuxeo.build</groupId>
         <artifactId>nuxeo-distribution-tools</artifactId>

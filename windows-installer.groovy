@@ -36,14 +36,14 @@ node('OLDJOYEUX') {
       sh '''#!/bin/bash -ex
         MAVEN_OPTS="-Xmx512m -Xmx2048m"
         if [ -n "$DISTRIBUTION_URL" ]; then
-          DISTRIBUTION="-Ddistribution.archive=$DISTRIBUTION_URL"
+          DISTRIBUTION_OPTS="-Ddistribution.archive=$DISTRIBUTION_URL"
         else
-          DISTRIBUTION=""
+          DISTRIBUTION_OPTS=""
         fi
 
         if [ "$PUBLISH_EXE" = "true" ]; then
           echo "*** "$(date +"%H:%M:%S")" Building and publishing .exe package"
-          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION -Ddeploy.host=${DEPLOY_HOST} -Ddeploy.path=$STAGING_PATH
+          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION_OPTS -Ddeploy.host=${DEPLOY_HOST} -Ddeploy.path=$STAGING_PATH
           echo "*** "$(date +"%H:%M:%S")" Publishing .exe package to staging"
           PKG=$(find . -name 'nuxeo-*-setup.exe' -print | head -n 1)
           FILENAME=$(basename $PKG)
@@ -52,7 +52,7 @@ node('OLDJOYEUX') {
           ssh ${DEPLOY_HOST} "cd $STAGING_PATH && md5sum $FILENAME > ${FILENAME}.md5 && sha256sum $FILENAME > ${FILENAME}.sha256"
         else
           echo "*** "$(date +"%H:%M:%S")" Building .exe package"
-          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION
+          mvn clean package -Ddistribution.version=$NUXEO_VERSION $DISTRIBUTION_OPTS
         fi
       '''
     }

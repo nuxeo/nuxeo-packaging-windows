@@ -44,20 +44,20 @@ git archive b0c0d00dac949bffd6241905146ceb2b9a45314a | tar -C ../package/ImageMa
 cd ..
 
 ### poppler 0.51 (pdftohtml)
-wget -nc --no-check-certificate http://blog.alivate.com.au/wp-content/uploads/2017/01/poppler-0.51_x86.7z
-unzip poppler-0.51_x86.7z
+wget -nc -nv --show-progress --no-check-certificate http://blog.alivate.com.au/wp-content/uploads/2017/01/poppler-0.51_x86.7z
+unzip -q poppler-0.51_x86.7z
 mv poppler-0.51 package/pdftohtml
 
 ### Ghostscript 9.22
-wget -nc https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs922/gs922w32.exe -P package/gs
+wget -nc -nv --show-progress https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs922/gs922w32.exe -P package/gs
 
 ### exiftool
-wget -nc https://sno.phy.queensu.ca/~phil/exiftool/exiftool-11.11.zip
-unzip exiftool-11.11.zip -d package/exiftool
+wget -nc -nv --show-progres https://sno.phy.queensu.ca/~phil/exiftool/exiftool-11.11.zip
+unzip -q exiftool-11.11.zip -d package/exiftool
 
 ### Java 8 Openjdk
-wget -nc https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.131-1/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip
-unzip java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip -d package/java
+wget -nc -nv --show-progres https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.131-1/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip
+unzip -q java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip -d package/java
 
-zip -r windows3rdParties-${VERSION}.zip package/*
+zip -q -r windows3rdParties-${VERSION}.zip package/*
 

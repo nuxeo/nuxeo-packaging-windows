@@ -24,7 +24,7 @@ properties([[$class: 'BuildDiscarderProperty',
             [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
             [$class: 'ParametersDefinitionProperty', parameterDefinitions: [
             [$class: 'StringParameterDefinition', defaultValue: '10.3-SNAPSHOT', description: 'Product version to build', name: 'NUXEO_VERSION'],
-            [$class: 'StringParameterDefinition', defaultValue: '', description: 'Optional - Alternate URL to download the distribution from instead of the default Maven artifact download. For instance: http://community.nuxeo.com/static/snapshots/nuxeo-server-tomcat-10.3-SNAPSHOT.zip'],
+            [$class: 'StringParameterDefinition', defaultValue: '', description: 'Optional - Alternate URL to download the distribution from instead of the default Maven artifact download. For instance: http://community.nuxeo.com/static/snapshots/nuxeo-server-tomcat-10.3-SNAPSHOT.zip', name: 'DISTRIBUTION_URL'],
             [$class: 'BooleanParameterDefinition', defaultValue: true, description: 'Publish .exe package', name: 'PUBLISH_EXE'],
             [$class: 'StringParameterDefinition', defaultValue: '/var/www/community.nuxeo.com/static/staging/', description: 'Staging publishing destination path (for scp)', name: 'STAGING_PATH'],
             [$class: 'StringParameterDefinition', defaultValue: 'nuxeo@lethe.nuxeo.com', description: 'Publishing destination host (for scp)', name: 'DEPLOY_HOST']]],

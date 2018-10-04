@@ -146,6 +146,19 @@
             <updatePolicy>always</updatePolicy>
           </snapshots>
         </repository>
+	<repository>
+          <id>vendor-snapshots</id>
+          <url>
+            https://maven-eu.nuxeo.org/nexus/content/repositories/vendor-snapshots/
+          </url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+          </snapshots>
+        </repository>
       </repositories>
       <pluginRepositories>
         <pluginRepository>

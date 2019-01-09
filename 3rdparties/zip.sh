@@ -58,6 +58,8 @@ unzip -q exiftool-11.11.zip -d package/exiftool
 ### Java 8 Openjdk
 wget -nc -nv https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.131-1/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip
 unzip -q java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip -d package/java
+mv package/java/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64/* package/java
+rm package/java/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64 -d
 
 zip -q -r windows3rdParties-${VERSION}.zip package/*
 

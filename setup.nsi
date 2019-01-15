@@ -91,7 +91,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyName "${COMPANY}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} CompanyWebsite "${URL}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} FileVersion "${VERSION}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} FileDescription "Nuxeo Platform"
-VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "Nuxeo 2006-2017"
+VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "Nuxeo 2006-2019"
 InstallDirRegKey HKLM "${REGKEY}" Path
 ShowUninstDetails show
 

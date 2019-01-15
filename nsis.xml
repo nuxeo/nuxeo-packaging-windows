@@ -112,7 +112,7 @@ VIProductVersion "${package.version}"
     <!-- prepare 3rd party libs -->
     <mkdir dir="${resources.dir}/3rdparty" />
     <unzip dest="${resources.dir}/3rdparty" overwrite="true">
-      <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:3.2-SNAPSHOT:zip" />
+      <artifact:resolveFile key="org.nuxeo.packaging:windows-installer-3parties:3.1:zip" />
     </unzip>
 
     <!-- prepare static resources -->

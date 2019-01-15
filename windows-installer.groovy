@@ -33,7 +33,7 @@ properties([[$class: 'BuildDiscarderProperty',
 node('SLAVE') {
   timestamps {
     timeout(time: 240, unit: 'MINUTES') {
-      checkout([$class: 'GitSCM', branches: [[name: $BRANCH]], browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '3rdparties/.*', includedRegions: '']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/nuxeo/nuxeo-packaging-windows']]])
+      checkout([$class: 'GitSCM', branches: [[name: BRANCH]], browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '3rdparties/.*', includedRegions: '']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/nuxeo/nuxeo-packaging-windows']]])
       sh '''#!/bin/bash -ex
         MAVEN_OPTS="-Xmx512m -Xmx2048m"
         if [ -n "$DISTRIBUTION_URL" ]; then

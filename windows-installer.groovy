@@ -29,7 +29,7 @@ properties([[$class: 'BuildDiscarderProperty',
             [$class: 'StringParameterDefinition', defaultValue: 'nuxeo@lethe.nuxeo.com', description: 'Publishing destination host (for scp)', name: 'DEPLOY_HOST']]],
             ])
 
-node('MULTIDB_LINUX') {
+node('SLAVE') {
   timestamps {
     timeout(time: 240, unit: 'MINUTES') {
       checkout([$class: 'GitSCM', branches: [[name: '*/feature-NXBT-2399-split&fix']], browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/nuxeo/nuxeo-packaging-windows'], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '3rdparties/.*', includedRegions: '']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/nuxeo/nuxeo-packaging-windows']]])

@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 #
-# (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+# (C) Copyright 2018-2019 Nuxeo SA (http://nuxeo.com/) and others.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,49 +17,57 @@
 # Contributors:
 #     Alexis Timic
 #     Julien Carsique
-#
+#     Frantz Fischer
 
 VERSION=${1:-1.0-SNAPSHOT}
 
-rm -rf target/package
 mkdir -p target/package
-cd target
+pushd target > /dev/null
 
-if [ ! -d ffmpeg ]; then
-    git clone https://git.ffmpeg.org/ffmpeg.git
-fi
-cd ffmpeg
-git checkout ae6f6d4e34b8353a547be48fbf34b95a1c3652e9
-mkdir -p ../package/ffmpeg
-git archive ae6f6d4e34 | tar -C ../package/ffmpeg -xf -
-cd ..
+# FFmpeg
+FFMPEG_FILE=${FFMPEG_FILE:-ffmpeg-4.1-win32-static}
+wget -nc -nv "https://ffmpeg.zeranoe.com/builds/win32/static/${FFMPEG_FILE}.zip"
+unzip "${FFMPEG_FILE}.zip" -d package
+mv "package/${FFMPEG_FILE}" package/ffmpeg
 
-if [ ! -d ImageMagick ]; then
-    git clone https://github.com/ImageMagick/ImageMagick.git
-fi
-cd ImageMagick
-git checkout b0c0d00dac949bffd6241905146ceb2b9a45314a
-mkdir -p ../package/ImageMagick
-git archive b0c0d00dac949bffd6241905146ceb2b9a45314a | tar -C ../package/ImageMagick -xf -
-cd ..
+# ImageMagick
+IMAGEMAGICK_VERSION=${IMAGEMAGICK_VERSION:-7.0.8-23-portable-Q16-x86}
+wget -nc -nv "https://imagemagick.org/download/binaries/ImageMagick-${IMAGEMAGICK_VERSION}.zip"
+# ignore error about backslashes, extraction is being performed anyway
+unzip "ImageMagick-${IMAGEMAGICK_VERSION}.zip" -x www\* -d package/ImageMagick || true
 
-### poppler 0.51 (pdftohtml)
-wget -nc -nv --no-check-certificate http://blog.alivate.com.au/wp-content/uploads/2017/01/poppler-0.51_x86.7z
-unzip -q poppler-0.51_x86.7z
-mv poppler-0.51 package/pdftohtml
+# Poppler (pdftohtml)
+POPPLER_VERSION=${POPPLER_VERSION:-0.68.0}
+POPPLER_RELEASE_DATE=${POPPLER_RELEASE_DATE:-2018\/10}
+wget -nc -nv --no-check-certificate "http://blog.alivate.com.au/wp-content/uploads/${POPPLER_RELEASE_DATE}/poppler-${POPPLER_VERSION}_x86.7z"
+7z e "poppler-${POPPLER_VERSION}_x86.7z" -xr\!share\* -xr\!include\* -xr\!pkgconfig\* -opackage/pdftohtml
+rmdir package/pdftohtml/bin package/pdftohtml/lib "package/pdftohtml/poppler-${POPPLER_VERSION}"
 
-### Ghostscript 9.22
-wget -nc -nv https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs922/gs922w32.exe -P package/gs
+# Ghostscript
+GHOSTSCRIPT_VERSION=${GHOSTSCRIPT_VERSION:-926}
+wget -nc -nv "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${GHOSTSCRIPT_VERSION}/gs${GHOSTSCRIPT_VERSION}w32.exe"
+7z x "gs${GHOSTSCRIPT_VERSION}w32.exe" -y -xr\!Resource\* -xr\!examples\* -opackage/gs
+# removed unneeded files that could not be excluded from extraction
+rm -rf package/gs/\$PLUGINSDIR
 
-### exiftool
-wget -nc -nv https://sno.phy.queensu.ca/~phil/exiftool/exiftool-11.11.zip
-unzip -q exiftool-11.11.zip -d package/exiftool
+# exiftool
+EXIFTOOL_FILE=${EXIFTOOL_FILE:-exiftool-11.11}
+wget -nc -nv "https://www.sno.phy.queensu.ca/~phil/exiftool/${EXIFTOOL_FILE}.zip"
+mkdir -p package/misc/bin
+unzip "${EXIFTOOL_FILE}.zip" -d package
+mv "package/exiftool(-k).exe" package/misc/bin/exiftool.exe
 
-### Java 8 Openjdk
-wget -nc -nv https://github.com/ojdkbuild/ojdkbuild/releases/download/1.8.0.131-1/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip
-unzip -q java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64.zip -d package/java
-mv package/java/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64/* package/java
-rm package/java/java-1.8.0-openjdk-1.8.0.131-1.b11.ojdkbuild.windows.x86_64 -d
+# Java 8
+JAVA_VERSION=${JAVA_VERSION:-1.8.0}
+JAVA_REVISION=${JAVA_REVISION:-191-1}
+JAVA_BUILD=${JAVA_BUILD:-12}
+JAVA_FILE=${JAVA_FILE:-java-1.8.0-openjdk-${JAVA_VERSION}.${JAVA_REVISION}.b${JAVA_BUILD}.ojdkbuild.windows.x86}
+wget -nc -nv "https://github.com/ojdkbuild/ojdkbuild/releases/download/${JAVA_VERSION}.${JAVA_REVISION}/${JAVA_FILE}.zip"
+unzip "${JAVA_FILE}".zip -d package
+mv package/"${JAVA_FILE}" package/java
 
-zip -q -r windows3rdParties-${VERSION}.zip package/*
+pushd package > /dev/null
+zip -r "../windows3rdParties-${VERSION}.zip" ./*
+popd > /dev/null
 
+popd > /dev/null

@@ -1,11 +1,25 @@
-Configuration :
+# Description
 
-pom.xml :
+Third party tools bundled in the Windows installer.
 
-- Change the version of the `.zip` manually in the `pom.xml`, if suffixed with `SNAPSHOT`, file will be upload to `vendor-snapshots` nexus repository, otherwise, file will be uploaded to `vendor-releases` nexus repository
+# Usage
 
-Deploy :
+Manually update the artifact version in the `pom.xml`.
+
+TODO: there is not yet continuous integration, it was not used to change.
+
+It is manually released as a thirdparty (vendor) package.
+
+# Verify
+When upgrading versions, run `mvn verify` to double-check there is no side effect in the packaging.
+
+- `mvn verify`
+
+# Deploy
 
 - `mvn deploy`
 
 To add or remove Windows executable, simply edit the `zip.sh` script
+
+# Dependencies
+7zip, Unzip, Zip, wget, shunit2

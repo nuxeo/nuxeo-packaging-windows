@@ -38,6 +38,8 @@ testPdfToHtmlIsCorrectlyDeployed() {
 
 testGhostScriptIsCorrectlyDeployed() {
   assertTrue 'GhostScript is not found' '[ -f "gs/bin/gswin32.exe" ]'
+  assertTrue 'GhostScript is not found' '[ -f "gs/bin/gswin32c.exe" ]'
+  assertTrue 'GhostScript is not found' '[ -f "gs/bin/gsdll32.dll" ]'
   # shellcheck disable=SC2016
   assertFalse 'include folder should not be present' '[ -d "gs/\$PLUGINSDIR" ]'
   assertFalse 'share folder should not be present' '[ -d "gs/examples" ]'

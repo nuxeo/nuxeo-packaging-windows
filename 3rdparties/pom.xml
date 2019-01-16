@@ -153,18 +153,32 @@
         <version>1.6.0</version>
         <executions>
           <execution>
+            <id>package-execution</id>
             <phase>package</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <configuration>
+              <executable>zip.sh</executable>
+                <arguments>
+                  <argument>${project.version}</argument>
+                </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>verify-execution</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>shunit2</executable>
+                <arguments>
+                  <argument>test_content.sh</argument>
+                </arguments>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <executable>zip.sh</executable>
-          <arguments>
-            <argument>${project.version}</argument>
-          </arguments>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

@@ -31,7 +31,7 @@ unzip "${FFMPEG_FILE}.zip" -d package
 mv "package/${FFMPEG_FILE}" package/ffmpeg
 
 # ImageMagick
-IMAGEMAGICK_VERSION=${IMAGEMAGICK_VERSION:-7.0.8-23-portable-Q16-x86}
+IMAGEMAGICK_VERSION=${IMAGEMAGICK_VERSION:-7.0.8-24-portable-Q16-x86}
 wget -nc -nv "https://imagemagick.org/download/binaries/ImageMagick-${IMAGEMAGICK_VERSION}.zip"
 # ignore error about backslashes, extraction is being performed anyway
 unzip "ImageMagick-${IMAGEMAGICK_VERSION}.zip" -x www\* -d package/ImageMagick || true
@@ -43,10 +43,12 @@ wget -nc -nv --no-check-certificate "http://blog.alivate.com.au/wp-content/uploa
 7z e "poppler-${POPPLER_VERSION}_x86.7z" -xr\!share\* -xr\!include\* -xr\!pkgconfig\* -opackage/pdftohtml
 rmdir package/pdftohtml/bin package/pdftohtml/lib "package/pdftohtml/poppler-${POPPLER_VERSION}"
 
-# Ghostscript
+# Ghostscript (32 and 64 bits versions)
 GHOSTSCRIPT_VERSION=${GHOSTSCRIPT_VERSION:-926}
 wget -nc -nv "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${GHOSTSCRIPT_VERSION}/gs${GHOSTSCRIPT_VERSION}w32.exe"
+wget -nc -nv "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${GHOSTSCRIPT_VERSION}/gs${GHOSTSCRIPT_VERSION}w64.exe"
 7z x "gs${GHOSTSCRIPT_VERSION}w32.exe" -y -xr\!Resource\* -xr\!examples\* -opackage/gs
+7z x "gs${GHOSTSCRIPT_VERSION}w64.exe" -y -xr\!Resource\* -xr\!examples\* -opackage/gs
 # removed unneeded files that could not be excluded from extraction
 rm -rf package/gs/\$PLUGINSDIR
 

@@ -26,7 +26,7 @@
     <condition property="distribution.artifactId" value="${env.distribution.artifactId}" else="nuxeo-server-tomcat">
       <isset property="env.distribution.artifactId" />
     </condition>
-    <condition property="distribution.version" value="${env.distribution.version}" else="9.10-SNAPSHOT">
+    <condition property="distribution.version" value="${env.distribution.version}" else="11.1-SNAPSHOT">
       <isset property="env.distribution.version" />
     </condition>
     <condition property="distribution.classifier" value="${env.distribution.classifier}" else="">
